@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jatkosuunnitelmat - Työ- ja opiskelumahdollisuudet</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <button class="burger-menu" id="burgerMenu" aria-label="Avaa valikko">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-content">
+            <h2>Sisällysluettelo</h2>
+            <ul id="navLinks">
+                <!-- Generoidaan dynaamisesti -->
+            </ul>
+        </div>
+        <div class="pdf-buttons">
+            <button id="downloadPdfShort" class="btn-download sidebar-download">Lataa PDF (lyhyt)</button>
+            <button id="downloadPdfFull" class="btn-download sidebar-download btn-download-full">Lataa PDF (laaja)</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header>
+            <h1>Suuntia</h1>
+            <p class="subtitle">Työnhakua, opiskelua, tekemistä ja muita vaihtoehtoja</p>
+        </header>
+
+        <main id="content">
+            <!-- Sisältö ladataan content.md tiedostosta -->
+        </main>
+
+        <footer>
+            <p>Viimeksi päivitetty: <span id="lastUpdated">21.01.2026</span></p>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    
+    <script>
+    // PDF generation with pdfmake - two versions: short and full
+    function generatePDF(includeFullDescriptions = false) {
+        console.log('generatePDF called with includeFullDescriptions:', includeFullDescriptions);
+        
+        const sections = document.querySelectorAll('.info-section');
+        const content = [];
+        
+        // Header
+        content.push({
+            text: 'Suuntia',
+            style: 'header',
+            alignment: 'center',
+            margin: [0, 0, 0, 10]
+        });
+        
+        content.push({
+            text: 'Työnhakua, opiskelua, tekemistä ja muita vaihtoehtoja',
+            style: 'subheader',
+            alignment: 'center',
+            margin: [0, 0, 0, 5]
+        });
+        
+        const currentDate = new Date().toLocaleDateString('fi-FI');
+        content.push({
+            text: `Päivitetty: ${currentDate}`,
+            fontSize: 10,
+            color: '#666666',
+            alignment: 'center',
+            margin: [0, 0, 0, 20]
+        });
+        
+        if (includeFullDescriptions) {
+            content.push({
+                text: '(Pitkät kuvaukset)',
+                fontSize: 9,
+                color: '#999999',
+                alignment: 'center',
+                margin: [0, 0, 0, 10]
+            });
+        }
+        
+        // Process each section
+        sections.forEach((section, sectionIndex) => {
+            const title = section.querySelector('h2').textContent;
+            
+            content.push({
+                text: title,
+                style: 'sectionHeader',
+                margin: [0, sectionIndex > 0 ? 20 : 10, 0, 10]
+            });
+            
+            const subcategories = section.querySelectorAll('.subcategory');
+            
+            if (subcategories.length > 0) {
+                subcategories.forEach(subcategory => {
+                    const subcategoryTitle = subcategory.textContent;
+                    content.push({
+                        text: subcategoryTitle,
+                        style: 'subcategoryHeader',
+                        margin: [0, 10, 0, 5]
+                    });
+                    
+                    let currentElement = subcategory.nextElementSibling;
+                    while (currentElement && currentElement.classList.contains('compact-list')) {
+                        processListItems(currentElement, content, includeFullDescriptions, 0);
+                        currentElement = currentElement.nextElementSibling;
+                        if (currentElement && currentElement.tagName === 'H3') break;
+                    }
+                });
+            } else {
+                const lists = section.querySelectorAll('.compact-list');
+                lists.forEach(list => {
+                    processListItems(list, content, includeFullDescriptions, 0);
+                });
+            }
+        });
+        
+        const docDefinition = {
+            pageSize: 'A4',
+            pageMargins: [40, 60, 40, 60],
+            content: content,
+            styles: {
+                header: {
+                    fontSize: 24,
+                    bold: true,
+                    color: '#10b981'
+                },
+                subheader: {
+                    fontSize: 14,
+                    color: '#666666'
+                },
+                sectionHeader: {
+                    fontSize: 16,
+                    bold: true,
+                    color: '#10b981',
+                    margin: [0, 15, 0, 10]
+                },
+                subcategoryHeader: {
+                    fontSize: 13,
+                    bold: true,
+                    color: '#3b82f6',
+                    margin: [0, 10, 0, 5]
+                },
+                nestedSubsectionHeader: {
+                    fontSize: 11,
+                    bold: true,
+                    color: '#f97316',
+                    margin: [10, 8, 0, 5]
+                }
+            },
+            defaultStyle: {
+                fontSize: 11,
+                color: '#333333'
+            }
+        };
+        
+        const filename = includeFullDescriptions ? 
+            `Suuntia_laaja_${currentDate.replace(/\./g, '-')}.pdf` : 
+            `Suuntia_lyhyt_${currentDate.replace(/\./g, '-')}.pdf`;
+        
+        pdfMake.createPdf(docDefinition).download(filename);
+    }
+
+    function processListItems(listElement, content, includeFullDescriptions, indentLevel) {
+        const items = listElement.querySelectorAll(':scope > li');
+        
+        items.forEach(item => {
+            if (!item.classList || item.classList.contains('nested-content')) {
+                return;
+            }
+            
+            const indent = indentLevel * 10;
+            let linkElement = null;
+            let shortDescription = '';
+            let longDescription = '';
+            
+            if (item.classList.contains('expandable-item')) {
+                const wrapper = item.querySelector('.expandable-item-content');
+                if (wrapper) {
+                    linkElement = wrapper.querySelector('a');
+                    const fullText = wrapper.textContent || '';
+                    
+                    const infoIcon = wrapper.querySelector('.info-icon');
+                    if (infoIcon) {
+                        longDescription = infoIcon.getAttribute('data-tooltip') || '';
+                    }
+                    
+                    if (linkElement) {
+                        const linkText = linkElement.textContent;
+                        let tempText = fullText.replace(linkText, '').replace(/►/g, '').replace(/i$/g, '').trim();
+                        if (tempText.startsWith('-')) {
+                            tempText = tempText.substring(1).trim();
+                        }
+                        shortDescription = tempText;
+                    }
+                }
+                
+                if (linkElement) {
+                    addPDFItem(content, linkElement, shortDescription, longDescription, includeFullDescriptions, indent);
+                }
+                
+                const nestedContent = item.querySelector('.nested-content');
+                if (nestedContent) {
+                    const subsectionTitles = nestedContent.querySelectorAll('.nested-subsection-title');
+                    subsectionTitles.forEach(subsectionTitle => {
+                        content.push({
+                            text: subsectionTitle.textContent,
+                            style: 'nestedSubsectionHeader',
+                            margin: [indent + 10, 8, 0, 5]
+                        });
+                        
+                        const nestedList = subsectionTitle.nextElementSibling;
+                        if (nestedList && nestedList.classList.contains('nested-list')) {
+                            const nestedItems = nestedList.querySelectorAll('li');
+                            nestedItems.forEach(nestedItem => {
+                                const nestedLink = nestedItem.querySelector('a');
+                                const nestedInfoIcon = nestedItem.querySelector('.info-icon');
+                                
+                                let nestedShort = '';
+                                let nestedLong = '';
+                                
+                                if (nestedInfoIcon) {
+                                    nestedLong = nestedInfoIcon.getAttribute('data-tooltip') || '';
+                                }
+                                
+                                if (nestedLink) {
+                                    const linkText = nestedLink.textContent;
+                                    let tempText = nestedItem.textContent.replace(linkText, '').replace(/i$/g, '').trim();
+                                    if (tempText.startsWith('-')) {
+                                        tempText = tempText.substring(1).trim();
+                                    }
+                                    nestedShort = tempText;
+                                    
+                                    addPDFItem(content, nestedLink, nestedShort, nestedLong, includeFullDescriptions, indent + 20);
+                                }
+                            });
+                        }
+                    });
+                }
+            } else {
+                linkElement = item.querySelector('a');
+                const infoIcon = item.querySelector('.info-icon');
+                
+                if (infoIcon) {
+                    longDescription = infoIcon.getAttribute('data-tooltip') || '';
+                }
+                
+                if (linkElement) {
+                    const linkText = linkElement.textContent;
+                    let tempText = item.textContent.replace(linkText, '').replace(/i$/g, '').trim();
+                    if (tempText.startsWith('-')) {
+                        tempText = tempText.substring(1).trim();
+                    }
+                    shortDescription = tempText;
+                    
+                    addPDFItem(content, linkElement, shortDescription, longDescription, includeFullDescriptions, indent);
+                } else {
+                    content.push({
+                        text: item.textContent.replace(/i$/g, '').trim(),
+                        margin: [indent + 15, 3, 0, 3]
+                    });
+                }
+            }
+        });
+    }
+
+    function addPDFItem(content, linkElement, shortDescription, longDescription, includeFullDescriptions, indent) {
+        const linkText = linkElement.textContent;
+        const url = linkElement.href;
+        const descriptionToUse = includeFullDescriptions && longDescription ? longDescription : shortDescription;
+        
+        const item = {
+            margin: [indent, 3, 0, 3],
+            columns: [
+                { text: '•', width: 15 },
+                {
+                    stack: [
+                        {
+                            text: linkText,
+                            link: url,
+                            color: '#0066cc',
+                            decoration: 'underline',
+                            bold: true
+                        }
+                    ]
+                }
+            ]
+        };
+        
+        if (descriptionToUse) {
+            item.columns[1].stack.push({
+                text: descriptionToUse,
+                fontSize: includeFullDescriptions ? 10 : 9,
+                color: '#555555',
+                margin: [0, 2, 0, 0]
+            });
+        }
+        
+        content.push(item);
+    }
+    </script>
+    
+    <script src="content-loader.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
