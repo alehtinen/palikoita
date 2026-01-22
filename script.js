@@ -3,6 +3,27 @@ const burgerMenu = document.getElementById('burgerMenu');
 const sidebar = document.getElementById('sidebar');
 const body = document.body;
 
+// Theme toggle functionality
+const themeToggle = document.getElementById('themeToggle');
+const themeIcon = document.getElementById('themeIcon');
+const root = document.documentElement;
+
+// Check for saved theme preference or default to dark
+const savedTheme = localStorage.getItem('theme') || 'dark';
+if (savedTheme === 'light') {
+    root.classList.add('light-mode');
+    themeIcon.textContent = '🌙';
+}
+
+if (themeToggle) {
+    themeToggle.addEventListener('click', function() {
+        root.classList.toggle('light-mode');
+        const isLight = root.classList.contains('light-mode');
+        themeIcon.textContent = isLight ? '🌙' : '☀️';
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    });
+}
+
 if (burgerMenu) {
     // Use touchstart for better mobile responsiveness
     const toggleSidebar = function(e) {
