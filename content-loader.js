@@ -26,6 +26,9 @@ async function loadContent() {
         // Initialize PDF buttons after content is loaded
         initializePDFButtons();
         
+        // Initialize info icon click handlers for mobile
+        initializeInfoIcons();
+        
     } catch (error) {
         console.error('Error loading content:', error);
         document.getElementById('content').innerHTML = '<p>Virhe sisällön lataamisessa.</p>';
@@ -432,8 +435,40 @@ function processItem(item, parentUl) {
         // Parse the main item content
         const itemContent = item.content;
         
-        // Check if item has | for short|long description
-        if (itemContent.includes(' | ')) {
+        // Check if content contains a markdown link [text](url)
+        const linkMatch = itemContent.match(/\[([^\]]+)\]\(([^)]+)\)/);
+        
+        if (linkMatch) {
+            // Item contains a link
+            const fullLink = linkMatch[0];  // Full [text](url)
+            const beforeLink = itemContent.substring(0, linkMatch.index);
+            const afterLink = itemContent.substring(linkMatch.index + fullLink.length);
+            
+            // Check if there's a description after the link (starts with " - ")
+            if (afterLink.trim().startsWith('- ')) {
+                const descriptionPart = afterLink.trim().substring(2).trim();
+                
+                let shortDesc, longDesc;
+                if (descriptionPart.includes(' | ')) {
+                    const descParts = descriptionPart.split(' | ');
+                    shortDesc = descParts[0].trim();
+                    longDesc = descParts.slice(1).join(' | ').trim();
+                    
+                    contentWrapper.innerHTML = beforeLink + parseMarkdownLine(fullLink) + 
+                        ` - ${shortDesc}` +
+                        ` <span class="info-icon" data-tooltip="${longDesc.replace(/"/g, '&quot;')}">i</span>` +
+                        ` <span class="expand-icon">►</span>`;
+                } else {
+                    contentWrapper.innerHTML = beforeLink + parseMarkdownLine(fullLink) + 
+                        ` - ${descriptionPart}` +
+                        ` <span class="expand-icon">►</span>`;
+                }
+            } else {
+                // No description after link, just render as-is
+                contentWrapper.innerHTML = parseMarkdownLine(itemContent) + ` <span class="expand-icon">►</span>`;
+            }
+        } else if (itemContent.includes(' | ')) {
+            // No link, but has | for short|long description
             const parts = itemContent.split(' | ');
             const mainPart = parts[0];
             const longDesc = parts.slice(1).join(' | ').trim();
@@ -441,28 +476,30 @@ function processItem(item, parentUl) {
             // Check if mainPart also has " - " separator
             if (mainPart.includes(' - ')) {
                 const subParts = mainPart.split(' - ');
-                const linkPart = subParts[0];
+                const titlePart = subParts[0];
                 const shortDesc = subParts.slice(1).join(' - ').trim();
                 
-                contentWrapper.innerHTML = parseMarkdownLine(linkPart) + 
+                contentWrapper.innerHTML = titlePart + 
                     ` - ${shortDesc}` +
                     ` <span class="info-icon" data-tooltip="${longDesc.replace(/"/g, '&quot;')}">i</span>` +
                     ` <span class="expand-icon">►</span>`;
             } else {
                 // No " - ", just main content and long description
-                contentWrapper.innerHTML = parseMarkdownLine(mainPart) +
+                contentWrapper.innerHTML = mainPart +
                     ` <span class="info-icon" data-tooltip="${longDesc.replace(/"/g, '&quot;')}">i</span>` +
                     ` <span class="expand-icon">►</span>`;
             }
         } else if (itemContent.includes(' - ')) {
+            // No link, no |, but has " - " separator
             const parts = itemContent.split(' - ');
-            const linkPart = parts[0];
+            const titlePart = parts[0];
             const descriptionPart = parts.slice(1).join(' - ');
             
-            contentWrapper.innerHTML = parseMarkdownLine(linkPart) + 
+            contentWrapper.innerHTML = titlePart + 
                 ` - ${descriptionPart}` +
                 ` <span class="expand-icon">►</span>`;
         } else {
+            // Plain content, no formatting
             contentWrapper.innerHTML = parseMarkdownLine(itemContent) + ` <span class="expand-icon">►</span>`;
         }
         
@@ -563,9 +600,35 @@ function processItem(item, parentUl) {
                             subSubsection.items.forEach(subSubItem => {
                                 const subSubLi = document.createElement('li');
                                 
-                                if (subSubItem.includes(' - ')) {
+                                const linkMatch = subSubItem.match(/\[([^\]]+)\]\(([^)]+)\)/);
+                                
+                                if (linkMatch) {
+                                    const fullLink = linkMatch[0];
+                                    const beforeLink = subSubItem.substring(0, linkMatch.index);
+                                    const afterLink = subSubItem.substring(linkMatch.index + fullLink.length);
+                                    
+                                    if (afterLink.trim().startsWith('- ')) {
+                                        const descriptionPart = afterLink.trim().substring(2).trim();
+                                        
+                                        let shortDesc, longDesc;
+                                        if (descriptionPart.includes(' | ')) {
+                                            const descParts = descriptionPart.split(' | ');
+                                            shortDesc = descParts[0].trim();
+                                            longDesc = descParts.slice(1).join(' | ').trim();
+                                        } else {
+                                            shortDesc = descriptionPart;
+                                            longDesc = descriptionPart;
+                                        }
+                                        
+                                        subSubLi.innerHTML = beforeLink + parseMarkdownLine(fullLink) + 
+                                            ` - ${shortDesc}` +
+                                            ` <span class="info-icon" data-tooltip="${longDesc.replace(/"/g, '&quot;')}">i</span>`;
+                                    } else {
+                                        subSubLi.innerHTML = parseMarkdownLine(subSubItem);
+                                    }
+                                } else if (subSubItem.includes(' - ')) {
                                     const parts = subSubItem.split(' - ');
-                                    const linkPart = parts[0];
+                                    const titlePart = parts[0];
                                     const descriptionPart = parts.slice(1).join(' - ');
                                     
                                     let shortDesc, longDesc;
@@ -578,7 +641,7 @@ function processItem(item, parentUl) {
                                         longDesc = descriptionPart;
                                     }
                                     
-                                    subSubLi.innerHTML = parseMarkdownLine(linkPart) + 
+                                    subSubLi.innerHTML = titlePart + 
                                         ` - ${shortDesc}` +
                                         ` <span class="info-icon" data-tooltip="${longDesc.replace(/"/g, '&quot;')}">i</span>`;
                                 } else {
@@ -613,9 +676,35 @@ function processItem(item, parentUl) {
                             subSubsection.items.forEach(subSubItem => {
                                 const subSubLi = document.createElement('li');
                                 
-                                if (subSubItem.includes(' - ')) {
+                                const linkMatch = subSubItem.match(/\[([^\]]+)\]\(([^)]+)\)/);
+                                
+                                if (linkMatch) {
+                                    const fullLink = linkMatch[0];
+                                    const beforeLink = subSubItem.substring(0, linkMatch.index);
+                                    const afterLink = subSubItem.substring(linkMatch.index + fullLink.length);
+                                    
+                                    if (afterLink.trim().startsWith('- ')) {
+                                        const descriptionPart = afterLink.trim().substring(2).trim();
+                                        
+                                        let shortDesc, longDesc;
+                                        if (descriptionPart.includes(' | ')) {
+                                            const descParts = descriptionPart.split(' | ');
+                                            shortDesc = descParts[0].trim();
+                                            longDesc = descParts.slice(1).join(' | ').trim();
+                                        } else {
+                                            shortDesc = descriptionPart;
+                                            longDesc = descriptionPart;
+                                        }
+                                        
+                                        subSubLi.innerHTML = beforeLink + parseMarkdownLine(fullLink) + 
+                                            ` - ${shortDesc}` +
+                                            ` <span class="info-icon" data-tooltip="${longDesc.replace(/"/g, '&quot;')}">i</span>`;
+                                    } else {
+                                        subSubLi.innerHTML = parseMarkdownLine(subSubItem);
+                                    }
+                                } else if (subSubItem.includes(' - ')) {
                                     const parts = subSubItem.split(' - ');
-                                    const linkPart = parts[0];
+                                    const titlePart = parts[0];
                                     const descriptionPart = parts.slice(1).join(' - ');
                                     
                                     let shortDesc, longDesc;
@@ -628,7 +717,7 @@ function processItem(item, parentUl) {
                                         longDesc = descriptionPart;
                                     }
                                     
-                                    subSubLi.innerHTML = parseMarkdownLine(linkPart) + 
+                                    subSubLi.innerHTML = titlePart + 
                                         ` - ${shortDesc}` +
                                         ` <span class="info-icon" data-tooltip="${longDesc.replace(/"/g, '&quot;')}">i</span>`;
                                 } else {
@@ -650,9 +739,35 @@ function processItem(item, parentUl) {
                     subsection.items.forEach(subItem => {
                         const subLi = document.createElement('li');
                         
-                        if (subItem.includes(' - ')) {
+                        const linkMatch = subItem.match(/\[([^\]]+)\]\(([^)]+)\)/);
+                        
+                        if (linkMatch) {
+                            const fullLink = linkMatch[0];
+                            const beforeLink = subItem.substring(0, linkMatch.index);
+                            const afterLink = subItem.substring(linkMatch.index + fullLink.length);
+                            
+                            if (afterLink.trim().startsWith('- ')) {
+                                const descriptionPart = afterLink.trim().substring(2).trim();
+                                
+                                let shortDesc, longDesc;
+                                if (descriptionPart.includes(' | ')) {
+                                    const descParts = descriptionPart.split(' | ');
+                                    shortDesc = descParts[0].trim();
+                                    longDesc = descParts.slice(1).join(' | ').trim();
+                                } else {
+                                    shortDesc = descriptionPart;
+                                    longDesc = descriptionPart;
+                                }
+                                
+                                subLi.innerHTML = beforeLink + parseMarkdownLine(fullLink) + 
+                                    ` - ${shortDesc}` +
+                                    ` <span class="info-icon" data-tooltip="${longDesc.replace(/"/g, '&quot;')}">i</span>`;
+                            } else {
+                                subLi.innerHTML = parseMarkdownLine(subItem);
+                            }
+                        } else if (subItem.includes(' - ')) {
                             const parts = subItem.split(' - ');
-                            const linkPart = parts[0];
+                            const titlePart = parts[0];
                             const descriptionPart = parts.slice(1).join(' - ');
                             
                             let shortDesc, longDesc;
@@ -665,7 +780,7 @@ function processItem(item, parentUl) {
                                 longDesc = descriptionPart;
                             }
                             
-                            subLi.innerHTML = parseMarkdownLine(linkPart) + 
+                            subLi.innerHTML = titlePart + 
                                 ` - ${shortDesc}` +
                                 ` <span class="info-icon" data-tooltip="${longDesc.replace(/"/g, '&quot;')}">i</span>`;
                         } else {
@@ -719,9 +834,35 @@ function processItem(item, parentUl) {
                         subSubsection.items.forEach(subSubItem => {
                             const subSubLi = document.createElement('li');
                             
-                            if (subSubItem.includes(' - ')) {
+                            const linkMatch = subSubItem.match(/\[([^\]]+)\]\(([^)]+)\)/);
+                            
+                            if (linkMatch) {
+                                const fullLink = linkMatch[0];
+                                const beforeLink = subSubItem.substring(0, linkMatch.index);
+                                const afterLink = subSubItem.substring(linkMatch.index + fullLink.length);
+                                
+                                if (afterLink.trim().startsWith('- ')) {
+                                    const descriptionPart = afterLink.trim().substring(2).trim();
+                                    
+                                    let shortDesc, longDesc;
+                                    if (descriptionPart.includes(' | ')) {
+                                        const descParts = descriptionPart.split(' | ');
+                                        shortDesc = descParts[0].trim();
+                                        longDesc = descParts.slice(1).join(' | ').trim();
+                                    } else {
+                                        shortDesc = descriptionPart;
+                                        longDesc = descriptionPart;
+                                    }
+                                    
+                                    subSubLi.innerHTML = beforeLink + parseMarkdownLine(fullLink) + 
+                                        ` - ${shortDesc}` +
+                                        ` <span class="info-icon" data-tooltip="${longDesc.replace(/"/g, '&quot;')}">i</span>`;
+                                } else {
+                                    subSubLi.innerHTML = parseMarkdownLine(subSubItem);
+                                }
+                            } else if (subSubItem.includes(' - ')) {
                                 const parts = subSubItem.split(' - ');
-                                const linkPart = parts[0];
+                                const titlePart = parts[0];
                                 const descriptionPart = parts.slice(1).join(' - ');
                                 
                                 let shortDesc, longDesc;
@@ -734,7 +875,7 @@ function processItem(item, parentUl) {
                                     longDesc = descriptionPart;
                                 }
                                 
-                                subSubLi.innerHTML = parseMarkdownLine(linkPart) + 
+                                subSubLi.innerHTML = titlePart + 
                                     ` - ${shortDesc}` +
                                     ` <span class="info-icon" data-tooltip="${longDesc.replace(/"/g, '&quot;')}">i</span>`;
                             } else {
@@ -754,9 +895,35 @@ function processItem(item, parentUl) {
                     subsection.items.forEach(subItem => {
                         const subLi = document.createElement('li');
                         
-                        if (subItem.includes(' - ')) {
+                        const linkMatch = subItem.match(/\[([^\]]+)\]\(([^)]+)\)/);
+                        
+                        if (linkMatch) {
+                            const fullLink = linkMatch[0];
+                            const beforeLink = subItem.substring(0, linkMatch.index);
+                            const afterLink = subItem.substring(linkMatch.index + fullLink.length);
+                            
+                            if (afterLink.trim().startsWith('- ')) {
+                                const descriptionPart = afterLink.trim().substring(2).trim();
+                                
+                                let shortDesc, longDesc;
+                                if (descriptionPart.includes(' | ')) {
+                                    const descParts = descriptionPart.split(' | ');
+                                    shortDesc = descParts[0].trim();
+                                    longDesc = descParts.slice(1).join(' | ').trim();
+                                } else {
+                                    shortDesc = descriptionPart;
+                                    longDesc = descriptionPart;
+                                }
+                                
+                                subLi.innerHTML = beforeLink + parseMarkdownLine(fullLink) + 
+                                    ` - ${shortDesc}` +
+                                    ` <span class="info-icon" data-tooltip="${longDesc.replace(/"/g, '&quot;')}">i</span>`;
+                            } else {
+                                subLi.innerHTML = parseMarkdownLine(subItem);
+                            }
+                        } else if (subItem.includes(' - ')) {
                             const parts = subItem.split(' - ');
-                            const linkPart = parts[0];
+                            const titlePart = parts[0];
                             const descriptionPart = parts.slice(1).join(' - ');
                             
                             let shortDesc, longDesc;
@@ -769,7 +936,7 @@ function processItem(item, parentUl) {
                                 longDesc = descriptionPart;
                             }
                             
-                            subLi.innerHTML = parseMarkdownLine(linkPart) + 
+                            subLi.innerHTML = titlePart + 
                                 ` - ${shortDesc}` +
                                 ` <span class="info-icon" data-tooltip="${longDesc.replace(/"/g, '&quot;')}">i</span>`;
                         } else {
@@ -789,9 +956,40 @@ function processItem(item, parentUl) {
         // Regular item without subsections
         const itemText = typeof item === 'string' ? item : item.content;
         
-        if (itemText.includes(' - ')) {
+        // Check if text contains a markdown link [text](url)
+        const linkMatch = itemText.match(/\[([^\]]+)\]\(([^)]+)\)/);
+        
+        if (linkMatch) {
+            // Item contains a link
+            const fullLink = linkMatch[0];  // Full [text](url)
+            const beforeLink = itemText.substring(0, linkMatch.index);
+            const afterLink = itemText.substring(linkMatch.index + fullLink.length);
+            
+            // Check if there's a description after the link (starts with " - ")
+            if (afterLink.trim().startsWith('- ')) {
+                const descriptionPart = afterLink.trim().substring(2).trim();
+                
+                let shortDesc, longDesc;
+                if (descriptionPart.includes(' | ')) {
+                    const descParts = descriptionPart.split(' | ');
+                    shortDesc = descParts[0].trim();
+                    longDesc = descParts.slice(1).join(' | ').trim();
+                } else {
+                    shortDesc = descriptionPart;
+                    longDesc = descriptionPart;
+                }
+                
+                li.innerHTML = beforeLink + parseMarkdownLine(fullLink) + 
+                    ` - ${shortDesc}` +
+                    ` <span class="info-icon" data-tooltip="${longDesc.replace(/"/g, '&quot;')}">i</span>`;
+            } else {
+                // No description after link, just render as-is
+                li.innerHTML = parseMarkdownLine(itemText);
+            }
+        } else if (itemText.includes(' - ')) {
+            // No link, but has " - " separator (old format)
             const parts = itemText.split(' - ');
-            const linkPart = parts[0];
+            const titlePart = parts[0];
             const descriptionPart = parts.slice(1).join(' - ');
             
             let shortDesc, longDesc;
@@ -804,10 +1002,11 @@ function processItem(item, parentUl) {
                 longDesc = descriptionPart;
             }
             
-            li.innerHTML = parseMarkdownLine(linkPart) + 
+            li.innerHTML = titlePart + 
                 ` - ${shortDesc}` +
                 ` <span class="info-icon" data-tooltip="${longDesc.replace(/"/g, '&quot;')}">i</span>`;
         } else {
+            // Plain text, no link, no separator
             li.innerHTML = parseMarkdownLine(itemText);
         }
         
@@ -842,6 +1041,66 @@ function initializePDFButtons() {
             generatePDF(true);
         });
     }
+}
+
+function initializeInfoIcons() {
+    // Handle info icon clicks for mobile/touch devices
+    let activeInfoIcon = null;
+    
+    // Handle both click and touch events
+    const handleInfoClick = (e) => {
+        const infoIcon = e.target.closest('.info-icon');
+        
+        if (infoIcon) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            // If clicking the same icon, toggle it
+            if (activeInfoIcon === infoIcon) {
+                infoIcon.classList.remove('active');
+                activeInfoIcon = null;
+            } else {
+                // Close any previously active icon
+                if (activeInfoIcon) {
+                    activeInfoIcon.classList.remove('active');
+                }
+                // Open the clicked icon
+                infoIcon.classList.add('active');
+                activeInfoIcon = infoIcon;
+            }
+            return false;
+        } else if (!e.target.closest('.info-icon::after')) {
+            // Clicked outside info icon and tooltip - close any active tooltip
+            if (activeInfoIcon) {
+                activeInfoIcon.classList.remove('active');
+                activeInfoIcon = null;
+            }
+        }
+    };
+    
+    document.addEventListener('click', handleInfoClick, true);
+    document.addEventListener('touchend', handleInfoClick, true);
+    
+    // Prevent expandable item clicks from interfering with info tooltips
+    const preventExpandOnInfo = (e) => {
+        if (e.target.closest('.info-icon')) {
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            return false;
+        }
+    };
+    
+    // Apply to all expandable items after a small delay to ensure they exist
+    setTimeout(() => {
+        document.querySelectorAll('.expandable-item, .expandable-subsection').forEach(item => {
+            const infoIcon = item.querySelector('.info-icon');
+            if (infoIcon) {
+                infoIcon.addEventListener('click', preventExpandOnInfo, true);
+                infoIcon.addEventListener('touchend', preventExpandOnInfo, true);
+            }
+        });
+    }, 100);
 }
 
 // Load content when page loads

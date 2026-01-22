@@ -1,33 +1,33 @@
-# Työpaikat
-
-## Yleiset työpaikkaportaalit
-
-- [Työmarkkinatori](https://tyomarkkinatori.fi/henkiloasiakkaat/avoimet-tyopaikat/) - TE-toimiston virallinen työnvälityspalvelu | TE-toimiston virallinen työnvälityspalvelu, jossa voit hakea työpaikkoja, jättää oman työhakemuksesi työnantajien nähtäväksi ja saada tietoa koulutuksista. Palveluun kirjaudutaan Suomi.fi-tunnistautumisella ja se sisältää kattavimman kokoelman julkisen sektorin ja TE-toimistoon ilmoitettuja työpaikkoja.
-- [Duunitori](https://duunitori.fi/tyopaikat/alue/tampere) - Suomen suurin työpaikkasivusto | Suomen suurin yksityinen työpaikkasivusto, joka kokoaa ilmoituksia sadoilta eri työnantajilta. Voit luoda hakuagentteja, tallentaa kiinnostavia ilmoituksia ja saada suosituksia omien mieltymystesi perusteella.
-- [Jobly](https://jobly.fi/) - Työpaikkailmoituksia eri lähteistä | Työpaikkahakukone joka kokoaa ilmoituksia eri lähteistä yhteen paikkaan. Palvelu vertailee automaattisesti eri sivustojen ilmoituksia ja auttaa löytämään parhaat mahdollisuudet yhdellä haulla.
-- [Indeed](https://fi.indeed.com/) - Kansainvälinen työnhakusivusto | Maailman suurin työnhakusivusto, joka tarjoaa kattavan valikoiman sekä kotimaisia että kansainvälisiä työpaikkoja. Erityisen hyvä vaihtoehto jos etsit töitä kansainvälisistä yrityksistä tai harkitset työskentelyä ulkomailla.
-- [Careerjet](https://www.careerjet.fi/) - Kansainvälinen työnhakukone | Kansainvälinen työnhakukone joka hakee ilmoituksia tuhansista eri lähteistä ympäri maailmaa. Hyvä työkalu laajan kuvan saamiseksi työmarkkinatilanteesta eri aloilla ja alueilla.
-
-## Julkisen sektorin työpaikat
-
-- [Kuntarekry](https://www.kuntarekry.fi/) - Kuntien ja kuntayhtymien yhteinen rekrytointipalvelu | Kuntien ja kuntayhtymien yhteinen rekrytointipalvelu, josta löydät monipuolisia tehtäviä opetuksesta ja varhaiskasvatuksesta teknisiin ja hallinnollisiin töihin. Palvelu kattaa kaikkien Suomen kuntien avoimet työpaikat ja tarjoaa tietoa myös kesätyöpaikoista ja harjoittelumahdollisuuksista.
-- [Valtiolle](https://www.valtiolle.fi/) - Valtion työpaikkojen hakupalvelu | Valtionhallinnon keskitetty rekrytointipalvelu, josta löydät avoimet virat ja työsuhteet eri ministeriöistä, virastoista ja laitoksista. Haku vaatii usein Suomi.fi-tunnistautumisen ja prosessi on virallinen julkisen sektorin rekrytointikäytäntöjen mukaisesti.
-
-## Henkilöstöpalveluyritykset
-
-- [Eezy](https://tyopaikat.eezy.fi/) - Henkilöstöpalveluyritys | Yksi Suomen suurimmista henkilöstöpalveluyrityksistä, joka tarjoaa vuokratyötä, rekrytointia ja konsultointia kaikilla toimialoilla. Hyvä vaihtoehto työelämään tutustumiseen ja työkokemuksen kartuttamiseen ilman pitkää sitoutumista.
-- [Staffpoint](https://www.staffpoint.fi/) - Henkilöstövuokraus | Kansainvälinen henkilöstövuokrausyritys, joka erikoistuu teollisuuden, logistiikan ja palvelualojen työvoiman tarjoamiseen. Tarjoaa usein nopeita työllistymismahdollisuuksia ja joustavaa työskentelyä.
-- [Barona](https://barona.fi/) - Rekrytointi- ja vuokratyöpalvelut | Suomen suurin henkilöstöpalvelu- ja rekrytointiyritys, joka tarjoaa vuokratyötä, suorarekrytointia ja konsultointia kaikilla toimialoilla. Kattava valikoima eri alojen töitä ja mahdollisuus edetä vakituiseen työsuhteeseen.
-- [Laura](https://laura.fi/) - Henkilöstöpalvelut sosiaali- ja terveysalalle | Sosiaali- ja terveysalaan erikoistunut henkilöstöpalveluyritys, joka tarjoaa sijaisuuksia, vakituisia töitä ja osa-aikaisia tehtäviä hoiva-alalla. Tarjoaa myös perehdytystä ja täydennyskoulutusta alalle tuleville.
-
----
-
 # Toimintaa johon tarvitsee päätöksen
 
 - Työllistämistuki - Työnantajalle maksettava tuki, vaatii TE-toimiston päätöksen | Työnantajalle maksettava tuki, joka edellyttää TE-toimiston kirjallista päätöstä. Tuki voi olla jopa 50% palkkakustannuksista ja sen tarkoituksena on helpottaa työllistämistä ja madaltaa kynnystä ottaa uusia työntekijöitä. Tukea voi saada myös osa-aikaisen työntekijän palkkaamiseen.
 - Palkkatuki - Tuki vaikeasti työllistyvien palkkaamiseen | Työnantajalle myönnettävä taloudellinen tuki vaikeasti työllistyvien henkilöiden palkkaamiseen. Tuki voi olla enintään 50% työntekijän palkkauskustannuksista ja se myönnetään määräajaksi. Tuen saamisen edellytyksenä on, että työnhakija on ollut pitkään työttömänä tai hänellä on muita työllistymistä vaikeuttavia tekijöitä.
-- Työkokeilut - Työn kokeilua ilman työsuhdetta, 1-6 kk | Mahdollisuus kokeilla työtä ilman varsinaista työsuhdetta 1-6 kuukauden ajaksi. Kokeilun aikana säilyy työttömyysturva ja samalla saa arvokasta työkokemusta ja mahdollisuuden näyttää osaamisensa työnantajalle. Työkokeilu voi johtaa vakituiseen työpaikkaan.
 - Työharjoittelu - Tuettu harjoittelu ammatillisen osaamisen kehittämiseen | TE-toimiston järjestämä tuettu harjoittelujakso, jonka tavoitteena on ammatillisen osaamisen kehittäminen ja työelämätaitojen vahvistaminen. Harjoittelu kestää tavallisesti 3-6 kuukautta ja sen aikana työttömyysturva säilyy. Sopii erinomaisesti uuden alan oppimiseen tai pitkän työttömyyden jälkeiseen työelämään paluuseen.
+
+---
+
+# Työkokeilut
+
+- Työkokeilu - Työn kokeilua ilman työsuhdetta, 1-6 kk | Mahdollisuus kokeilla työtä ilman varsinaista työsuhdetta 1-6 kuukauden ajaksi. Kokeilun aikana säilyy työttömyysturva ja samalla saa arvokasta työkokemusta ja mahdollisuuden näyttää osaamisensa työnantajalle. Työkokeilu voi johtaa vakituiseen työpaikkaan.
+- [Työkokeilupaikat Työmarkkinatorilla](https://tyomarkkinatori.fi/) - Hae työkokeilupaikkoja | Voit hakea työkokeilupaikkoja Työmarkkinatorin kautta. TE-toimisto auttaa sopivan paikan löytämisessä ja hoitaa tarvittavan paperityön.
+
+---
+
+# Kuntouttava työtoiminta
+
+## Kuntouttavaa työtoimintaa tarjoavia paikkoja
+
+- [Tampereen kaupunki - Kuntouttava työtoiminta](https://www.tampere.fi/sosiaali-ja-terveyspalvelut/tyollisyyspalvelut/kuntouttava-tyotoiminta) - Tampereen kuntouttavan työtoiminnan palvelut | Tampereen kaupunki järjestää kuntouttavaa työtoimintaa eri toimipisteissä. Toimintaa on esimerkiksi kiinteistönhoitoon, ruokapalveluihin, puistotyöhön ja toimistotehtäviin liittyen.
+- [SPR Pirkanmaa - Kuntouttava työtoiminta](https://www.punainenristi.fi/pirkanmaa) - Vapaaehtoistoimintaa ja työtoimintaa | SPR Pirkanmaalla voi osallistua erilaiseen kuntouttavaan toimintaan kuten kierrätyspisteellä työskentelyyn, vastaanottokeskustoimintaan tai vanhustyöhön.
+- [Sininauhasäätiö Tampere](https://sininauhasaatio.fi/toimipisteet/tampere/) - Kuntouttavaa työtoimintaa päihde- ja mielenterveyskuntoutujille | Sininauhasäätiö tarjoaa kuntouttavaa työtoimintaa kierrätyksessä, kahvilatoiminnassa ja muissa palveluissa erityisesti päihde- ja mielenterveyskuntoutujille.
+- [Tukinainen ry](https://www.tukinainen.fi/) - Naisten työllistymistä tukevaa toimintaa | Tukinainen ry tarjoaa kuntouttavaa työtoimintaa, työkokeilua ja työvalmennusta naisille Tampereella. Toimintaa on esimerkiksi käsityöpajalla ja kahvilassa.
+
+## Lisätietoja
+
+- Kuntouttava työtoiminta - Toimintaa työelämävalmiuksien vahvistamiseen | Kuntouttava työtoiminta on tarkoitettu pitkään työttömänä olleille henkilöille, joiden työ- tai toimintakyky on heikentynyt. Se on kunnan ja TE-toimiston yhteistyössä järjestämää toimintaa, jonka tavoitteena on parantaa osallistujan elämänhallintaa ja edellytyksiä työllistymiseen tai koulutukseen hakeutumiseen. Toiminta toteutetaan yksilöllisen aktivointisuunnitelman mukaisesti.
+- [Kuntouttava työtoiminta - Kela](https://www.kela.fi/kuntouttava-tyotoiminta) - Tietoa kuntouttavasta työtoiminnasta | Kelan sivuilta löydät lisätietoa kuntouttavan työtoiminnan edellytyksistä, hakemisesta ja tuesta.
+- [TE-palvelut - Kuntouttava työtoiminta](https://www.te-palvelut.fi/te/fi/tyonhakijalle/tukea_tyollistymiseen/kuntouttava_tyotoiminta/index.html) - TE-palveluiden ohjeistus | TE-palveluiden sivuilta löydät tietoa kuntouttavan työtoiminnan järjestämisestä ja siihen hakeutumisesta.
+- [Tampereen kaupunki - Aktivointisuunnitelma](https://www.tampere.fi/sosiaali-ja-terveyspalvelut/tyollisyyspalvelut) - Tietoa aktivointisuunnitelmasta | Aktivointisuunnitelma laaditaan yhdessä kunnan ja TE-toimiston kanssa. Suunnitelmassa kartoitetaan osallistujan tilanne ja sovitaan tarvittavista tukitoimista.
 
 ---
 
@@ -100,10 +100,32 @@
 
 # Vapaaehtoista toimintaa
 
-- Kulttuuritalo Virta - Yhteisöllinen kulttuurikeskus | Yhteisöllinen kulttuurikeskus joka tarjoaa monipuolista harrastustoimintaa, tapahtumia, työpajoja ja mahdollisuuksia osallistua eri ryhmien toimintaan.
-- Vapaaehtoiskeskukset - Monipuolisia vapaaehtoistöön mahdollisuuksia | Kaupungeissa ja kunnissa toimivat keskukset, jotka yhdistävät vapaaehtoiset ja vapaaehtoisia kaipaavat tahot.
-- Järjestötoiminta - Urheilu-, kulttuuri- ja sosiaalijarjestöt | Urheilu-, kulttuuri- ja sosiaalialan järjestöt tarjoavat lukuisia mahdollisuuksia osallistua toimintaan vapaaehtoisena.
-- Seurakuntien toiminta - Diakonia-, nuoriso- ja ryhmätoimintaa | Diakonia-, nuoriso- ja ryhmätoimintaa seurakunnissa, joka tarjoaa mahdollisuuksia auttaa lähimmäisiä.
+- [Vapaaehtoiskeskus Tampereen seudulla](https://www.vapaaehtoistyotampere.fi/) - Vapaaehtoistoiminnan keskus | Yhdistää vapaaehtoiset ja vapaaehtoisia kaipaavat tahot. Tarjoaa monenlaisia mahdollisuuksia auttaa ja osallistua.
+- [SPR Vapaaehtoistoiminta](https://www.punainenristi.fi/vapaaehtoistoiminta) - Punaisen Ristin vapaaehtoistyö | Monenlaista vapaaehtoistoimintaa ensiapu- ja terveystyöstä pakolaistyöhön ja nuorisotyöhön.
+- Järjestöjen vapaaehtoistoiminta - Vapaaehtoistyö järjestöissä | Urheilu-, kulttuuri- ja sosiaalialan järjestöt tarjoavat lukuisia mahdollisuuksia osallistua toimintaan vapaaehtoisena.
+- [Seurakuntien vapaaehtoistoiminta](https://www.tampereenseurakunnat.fi/vapaaehtoistyo) - Diakonia- ja auttamistyö | Diakonia-, nuoriso- ja ryhmätoimintaa seurakunnissa, joka tarjoaa mahdollisuuksia auttaa lähimmäisiä.
+
+---
+
+# Harrastetoiminta
+
+- [Tampereen kaupungin liikuntapalvelut](https://www.tampere.fi/liikunta-ja-ulkoilu) - Liikuntapaikat ja -toiminta | Kattava valikoima liikuntapaikkoja, ohjattua toimintaa, kuntosaleja ja urheilutiloja.
+- [Kulttuuritalo Virta](https://www.virta.fi/) - Yhteisöllinen kulttuurikeskus | Yhteisöllinen kulttuurikeskus joka tarjoaa monipuolista harrastustoimintaa, työpajoja, kursseja ja tapahtumia.
+- [Tampereen kirjastot](https://www.tampere.fi/tampereen-kaupunginkirjasto) - Kirjastot ja kulttuuripalvelut | Kirjastojen monipuoliset palvelut, tapahtumat, kerhot ja harrastusryhmät.
+- Urheiluseurat ja -järjestöt - Liikuntaharrastukset | Tampereen seudulla toimii satoja urheiluseuroja eri lajeissa - joukkuelajeista yksilölajeihin.
+- Kulttuurijärjestöt - Taide ja kulttuuri | Kuorot, teatteriryhmät, tanssiryhmät, musiikkiyhdistykset ja muut kulttuuritoimijat tarjoavat harrastusmahdollisuuksia.
+- Kansalaisopisto - Aikuisten vapaa-ajan opinnot | Kansalaisopistot tarjoavat laajan valikoiman kursseja kielistä käsitöihin, liikunnasta musiikkiin.
+
+---
+
+# Vapaa-aika
+
+- [Tampereen tapahtumat](https://www.tampere.fi/tapahtumat) - Kaupungin tapahtumakalenteri | Kattava kalenteri kaupungin tapahtumista, festivaaleista ja vapaa-ajan aktiviteeteista.
+- [Tampereen museot](https://www.tampere.fi/kulttuuri-ja-vapaa-aika/museot) - Museot ja näyttelyt | Monipuolisia museoita taidemuseosta teollisuusmuseoihin ja erikoismuseoihin.
+- [Puistot ja ulkoilualueet](https://www.tampere.fi/liikunta-ja-ulkoilu/ulkoilualueet) - Ulkoilu ja retkeily | Laaja verkosto puistoja, ulkoilualueita, retkeilyreittejä ja luontokohteita.
+- [Uimahallit ja uimarannat](https://www.tampere.fi/liikunta-ja-ulkoilu/uiminen) - Uintimahdollisuudet | Sisä- ja ulkouimahallit sekä uimarannat ympäri kaupunkia.
+- [Elokuvateatterit](https://www.finnkino.fi/tampere) - Elokuvat | Elokuvateatterit ja erikoisnäytökset.
+- Kahvilat ja ravintolat - Sosiaalinen ajanvietto | Monipuolinen valikoima kahviloita, ravintoloita ja tapaamis paikkoja keskustassa ja ympäri kaupunkia.
 
 ---
 
@@ -114,3 +136,27 @@
 - Ura- ja työelämävalmennus - Urasuunnittelu ja työnhakuvalmennus | Ammatillista ohjausta ja valmennusta urasuunnitteluun, työnhakuun ja työelämätaitoihin.
 - Taitovalmennus - Digitaidot, kieliopinnot, asiakaspalvelu | Lyhytkestoista valmennusta jossa voit kehittää digitaitoja, kielitaitoa, asiakaspalvelutaitoja.
 - Starttivalmennus - Intensiivinen valmennus suunnan löytämiseen, 1-4 viikkoa | Intensiivinen 1-4 viikon mittainen valmennus suunnan löytämiseen ja motivaation vahvistamiseen.
+
+---
+
+# Työnhaku
+
+## Yleiset työpaikkaportaalit
+
+- [Työmarkkinatori](https://tyomarkkinatori.fi/henkiloasiakkaat/avoimet-tyopaikat/) - TE-toimiston virallinen työnvälityspalvelu | TE-toimiston virallinen työnvälityspalvelu, jossa voit hakea työpaikkoja, jättää oman työhakemuksesi työnantajien nähtäväksi ja saada tietoa koulutuksista. Palveluun kirjaudutaan Suomi.fi-tunnistautumisella ja se sisältää kattavimman kokoelman julkisen sektorin ja TE-toimistoon ilmoitettuja työpaikkoja.
+- [Duunitori](https://duunitori.fi/tyopaikat/alue/tampere) - Suomen suurin työpaikkasivusto | Suomen suurin yksityinen työpaikkasivusto, joka kokoaa ilmoituksia sadoilta eri työnantajilta. Voit luoda hakuagentteja, tallentaa kiinnostavia ilmoituksia ja saada suosituksia omien mieltymystesi perusteella.
+- [Jobly](https://jobly.fi/) - Työpaikkailmoituksia eri lähteistä | Työpaikkahakukone joka kokoaa ilmoituksia eri lähteistä yhteen paikkaan. Palvelu vertailee automaattisesti eri sivustojen ilmoituksia ja auttaa löytämään parhaat mahdollisuudet yhdellä haulla.
+- [Indeed](https://fi.indeed.com/) - Kansainvälinen työnhakusivusto | Maailman suurin työnhakusivusto, joka tarjoaa kattavan valikoiman sekä kotimaisia että kansainvälisiä työpaikkoja. Erityisen hyvä vaihtoehto jos etsit töitä kansainvälisistä yrityksistä tai harkitset työskentelyä ulkomailla.
+- [Careerjet](https://www.careerjet.fi/) - Kansainvälinen työnhakukone | Kansainvälinen työnhakukone joka hakee ilmoituksia tuhansista eri lähteistä ympäri maailmaa. Hyvä työkalu laajan kuvan saamiseksi työmarkkinatilanteesta eri aloilla ja alueilla.
+
+## Julkisen sektorin työpaikat
+
+- [Kuntarekry](https://www.kuntarekry.fi/) - Kuntien ja kuntayhtymien yhteinen rekrytointipalvelu | Kuntien ja kuntayhtymien yhteinen rekrytointipalvelu, josta löydät monipuolisia tehtäviä opetuksesta ja varhaiskasvatuksesta teknisiin ja hallinnollisiin töihin. Palvelu kattaa kaikkien Suomen kuntien avoimet työpaikat ja tarjoaa tietoa myös kesätyöpaikoista ja harjoittelumahdollisuuksista.
+- [Valtiolle](https://www.valtiolle.fi/) - Valtion työpaikkojen hakupalvelu | Valtionhallinnon keskitetty rekrytointipalvelu, josta löydät avoimet virat ja työsuhteet eri ministeriöistä, virastoista ja laitoksista. Haku vaatii usein Suomi.fi-tunnistautumisen ja prosessi on virallinen julkisen sektorin rekrytointikäytäntöjen mukaisesti.
+
+## Henkilöstöpalveluyritykset
+
+- [Eezy](https://tyopaikat.eezy.fi/) - Henkilöstöpalveluyritys | Yksi Suomen suurimmista henkilöstöpalveluyrityksistä, joka tarjoaa vuokratyötä, rekrytointia ja konsultointia kaikilla toimialoilla. Hyvä vaihtoehto työelämään tutustumiseen ja työkokemuksen kartuttamiseen ilman pitkää sitoutumista.
+- [Staffpoint](https://www.staffpoint.fi/) - Henkilöstövuokraus | Kansainvälinen henkilöstövuokrausyritys, joka erikoistuu teollisuuden, logistiikan ja palvelualojen työvoiman tarjoamiseen. Tarjoaa usein nopeita työllistymismahdollisuuksia ja joustavaa työskentelyä.
+- [Barona](https://barona.fi/) - Rekrytointi- ja vuokratyöpalvelut | Suomen suurin henkilöstöpalvelu- ja rekrytointiyritys, joka tarjoaa vuokratyötä, suorarekrytointia ja konsultointia kaikilla toimialoilla. Kattava valikoima eri alojen töitä ja mahdollisuus edetä vakituiseen työsuhteeseen.
+- [Laura](https://laura.fi/) - Henkilöstöpalvelut sosiaali- ja terveysalalle | Sosiaali- ja terveysalaan erikoistunut henkilöstöpalveluyritys, joka tarjoaa sijaisuuksia, vakituisia töitä ja osa-aikaisia tehtäviä hoiva-alalla. Tarjoaa myös perehdytystä ja täydennyskoulutusta alalle tuleville.

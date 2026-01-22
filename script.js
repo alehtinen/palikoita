@@ -4,34 +4,52 @@ const sidebar = document.getElementById('sidebar');
 const body = document.body;
 
 if (burgerMenu) {
-    burgerMenu.addEventListener('click', function() {
+    // Use touchstart for better mobile responsiveness
+    const toggleSidebar = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
         burgerMenu.classList.toggle('active');
         sidebar.classList.toggle('active');
         body.classList.toggle('sidebar-open');
-    });
+    };
+    
+    burgerMenu.addEventListener('click', toggleSidebar);
+    burgerMenu.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        toggleSidebar(e);
+    }, { passive: false });
 
     // Close sidebar when clicking on a link
     const sidebarLinks = sidebar.querySelectorAll('a');
     sidebarLinks.forEach(link => {
-        link.addEventListener('click', function() {
+        const closeSidebar = function() {
             if (window.innerWidth <= 768) {
                 burgerMenu.classList.remove('active');
                 sidebar.classList.remove('active');
                 body.classList.remove('sidebar-open');
             }
-        });
+        };
+        
+        link.addEventListener('click', closeSidebar);
+        link.addEventListener('touchend', closeSidebar);
     });
 
     // Close sidebar when clicking outside on mobile
-    document.addEventListener('click', function(event) {
-        if (window.innerWidth <= 768) {
-            if (!sidebar.contains(event.target) && !burgerMenu.contains(event.target)) {
+    let isClosing = false;
+    const outsideClickHandler = function(event) {
+        if (window.innerWidth <= 768 && !isClosing) {
+            if (!sidebar.contains(event.target) && !burgerMenu.contains(event.target) && sidebar.classList.contains('active')) {
+                isClosing = true;
                 burgerMenu.classList.remove('active');
                 sidebar.classList.remove('active');
                 body.classList.remove('sidebar-open');
+                setTimeout(() => { isClosing = false; }, 300);
             }
         }
-    });
+    };
+    
+    document.addEventListener('click', outsideClickHandler);
+    document.addEventListener('touchend', outsideClickHandler);
 }
 
 // Submenu toggle functionality (only for static version)
