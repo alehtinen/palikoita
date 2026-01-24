@@ -39,10 +39,10 @@ function toggleTheme() {
 // Language Management
 function applyLanguage() {
     document.querySelectorAll('.lang-fi').forEach(el => {
-        el.classList.toggle('hidden', currentLang !== 'fi');
+        el.style.display = currentLang !== 'fi' ? 'none' : '';
     });
     document.querySelectorAll('.lang-en').forEach(el => {
-        el.classList.toggle('hidden', currentLang !== 'en');
+        el.style.display = currentLang !== 'en' ? 'none' : '';
     });
     
     const langToggle = document.getElementById('langToggle');
