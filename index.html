@@ -3,317 +3,303 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jatkosuunnitelmat - Työ- ja opiskelumahdollisuudet</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <title>Tekemistö - Hakemisto joka sisältää myös tekemistä</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#8b5cf6',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hero-card {
+            transition: all 0.3s ease;
+        }
+        .hero-card:hover {
+            transform: translateY(-8px);
+        }
+        .tag-filter-btn {
+            transition: all 0.2s ease;
+        }
+        .tag-filter-btn.active {
+            ring: 2px;
+        }
+        /* Tailwind JIT safelist - all possible dynamic color classes */
+        .bg-blue-50,.bg-blue-100,.bg-blue-200,.bg-blue-500,.bg-blue-600,.bg-blue-700,.bg-blue-800,.bg-blue-900,
+        .bg-purple-50,.bg-purple-100,.bg-purple-200,.bg-purple-500,.bg-purple-600,.bg-purple-700,.bg-purple-800,.bg-purple-900,
+        .bg-green-50,.bg-green-100,.bg-green-200,.bg-green-500,.bg-green-600,.bg-green-700,.bg-green-800,.bg-green-900,
+        .bg-red-50,.bg-red-100,.bg-red-200,.bg-red-500,.bg-red-600,.bg-red-700,.bg-red-800,.bg-red-900,
+        .bg-yellow-50,.bg-yellow-100,.bg-yellow-200,.bg-yellow-500,.bg-yellow-600,.bg-yellow-700,.bg-yellow-800,.bg-yellow-900,
+        .bg-orange-50,.bg-orange-100,.bg-orange-200,.bg-orange-500,.bg-orange-600,.bg-orange-700,.bg-orange-800,.bg-orange-900,
+        .bg-pink-50,.bg-pink-100,.bg-pink-200,.bg-pink-500,.bg-pink-600,.bg-pink-700,.bg-pink-800,.bg-pink-900,
+        .bg-indigo-50,.bg-indigo-100,.bg-indigo-200,.bg-indigo-500,.bg-indigo-600,.bg-indigo-700,.bg-indigo-800,.bg-indigo-900,
+        .bg-cyan-50,.bg-cyan-100,.bg-cyan-200,.bg-cyan-500,.bg-cyan-600,.bg-cyan-700,.bg-cyan-800,.bg-cyan-900,
+        .bg-teal-50,.bg-teal-100,.bg-teal-200,.bg-teal-500,.bg-teal-600,.bg-teal-700,.bg-teal-800,.bg-teal-900,
+        .bg-gray-50,.bg-gray-100,.bg-gray-200,.bg-gray-500,.bg-gray-600,.bg-gray-700,.bg-gray-800,.bg-gray-900,
+        .text-blue-200,.text-blue-400,.text-blue-600,.text-blue-800,
+        .text-purple-200,.text-purple-400,.text-purple-600,.text-purple-800,
+        .text-green-200,.text-green-400,.text-green-600,.text-green-800,
+        .text-red-200,.text-red-400,.text-red-600,.text-red-800,
+        .text-yellow-200,.text-yellow-400,.text-yellow-600,.text-yellow-800,
+        .text-orange-200,.text-orange-400,.text-orange-600,.text-orange-800,
+        .text-pink-200,.text-pink-400,.text-pink-600,.text-pink-800,
+        .text-indigo-200,.text-indigo-400,.text-indigo-600,.text-indigo-800,
+        .text-cyan-200,.text-cyan-400,.text-cyan-600,.text-cyan-800,
+        .text-teal-200,.text-teal-400,.text-teal-600,.text-teal-800,
+        .text-gray-200,.text-gray-400,.text-gray-600,.text-gray-800,
+        .hover\:bg-blue-100,.hover\:bg-blue-700,.hover\:bg-blue-900,
+        .hover\:bg-purple-100,.hover\:bg-purple-700,.hover\:bg-purple-900,
+        .hover\:bg-green-100,.hover\:bg-green-700,.hover\:bg-green-900,
+        .hover\:bg-red-100,.hover\:bg-red-700,.hover\:bg-red-900,
+        .hover\:bg-yellow-100,.hover\:bg-yellow-700,.hover\:bg-yellow-900,
+        .hover\:bg-orange-100,.hover\:bg-orange-700,.hover\:bg-orange-900,
+        .hover\:bg-pink-100,.hover\:bg-pink-700,.hover\:bg-pink-900,
+        .hover\:bg-indigo-100,.hover\:bg-indigo-700,.hover\:bg-indigo-900,
+        .hover\:bg-cyan-100,.hover\:bg-cyan-700,.hover\:bg-cyan-900,
+        .hover\:bg-teal-100,.hover\:bg-teal-700,.hover\:bg-teal-900,
+        .dark\:bg-blue-900,.dark\:bg-purple-900,.dark\:bg-green-900,.dark\:bg-red-900,.dark\:bg-yellow-900,
+        .dark\:bg-orange-900,.dark\:bg-pink-900,.dark\:bg-indigo-900,.dark\:bg-cyan-900,.dark\:bg-teal-900,
+        .dark\:text-blue-200,.dark\:text-purple-200,.dark\:text-green-200,.dark\:text-red-200,
+        .dark\:text-yellow-200,.dark\:text-orange-200,.dark\:text-pink-200,.dark\:text-indigo-200,
+        .dark\:text-cyan-200,.dark\:text-teal-200,
+        .dark\:hover\:bg-blue-900,.dark\:hover\:bg-purple-900,.dark\:hover\:bg-green-900,
+        .dark\:hover\:bg-red-900,.dark\:hover\:bg-yellow-900,.dark\:hover\:bg-orange-900,
+        .ring-2,.ring-blue-500,.ring-purple-500,.ring-green-500,.ring-red-500,.ring-yellow-500,
+        .ring-orange-500,.ring-pink-500,.ring-indigo-500,.ring-cyan-500,.ring-teal-500,
+        .border-blue-500,.border-purple-500,.border-green-500,.border-red-500,.border-yellow-500,
+        .border-orange-500,.border-pink-500,.border-indigo-500,.border-cyan-500,.border-teal-500,
+        .hover\:border-blue-500,.hover\:border-purple-500,.hover\:border-green-500,
+        .hover\:text-blue-300,.hover\:text-blue-700,.hover\:text-purple-300,.hover\:text-purple-700,
+        .dark\:hover\:text-blue-300,.dark\:hover\:text-purple-300 { }
+    </style>
 </head>
-<body>
-    <!-- Theme toggle button -->
-    <button id="themeToggle" class="theme-toggle" aria-label="Vaihda teemaa" title="Vaihda vaalea/tumma tila">
-        <span id="themeIcon">☀️</span>
-    </button>
-
-    <button class="burger-menu" id="burgerMenu" aria-label="Avaa valikko">
-        <span></span>
-        <span></span>
-        <span></span>
-    </button>
-
-    <nav class="sidebar" id="sidebar">
-        <div class="sidebar-content">
-            <h2>Sisällysluettelo</h2>
-            <ul id="navLinks">
-                <!-- Generoidaan dynaamisesti -->
-            </ul>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 min-h-screen transition-colors duration-200">
+    <!-- Header -->
+    <header class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+                        Tekemistö
+                    </h1>
+                    <p class="text-gray-600 dark:text-gray-400 mt-2">
+                        <span class="lang-fi">Hakemisto joka sisältää myös tekemistä. Tamperelaisille ja vähän muillekin.</span>
+                        <span class="lang-en hidden">Index that also includes activities. For residents of Tampere and some for others too.</span>
+                    </p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <!-- Bookmarks Download -->
+                    <button onclick="downloadBookmarks()" class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium flex items-center gap-1 transition-colors text-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                        </svg>
+                        <span class="lang-fi">Kirjanmerkit</span>
+                        <span class="lang-en hidden">Bookmarks</span>
+                    </button>
+                    
+                    <!-- Combined PDF Download -->
+                    <button onclick="downloadCombinedPDF()" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-1 transition-colors text-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span class="lang-fi">PDF</span>
+                        <span class="lang-en hidden">PDF</span>
+                    </button>
+                    
+                    <!-- ZIP Download -->
+                    <button onclick="downloadAllPDFsAsZip()" class="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-1 transition-colors text-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span class="lang-fi">ZIP</span>
+                        <span class="lang-en hidden">ZIP</span>
+                    </button>
+                    
+                    <!-- Language Toggle -->
+                    <button id="langToggle" class="px-3 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium text-sm">
+                        EN
+                    </button>
+                    <!-- Theme Toggle -->
+                    <button id="themeToggle" class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                        <svg id="sunIcon" class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
+                        </svg>
+                        <svg id="moonIcon" class="w-5 h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="pdf-buttons">
-            <button id="downloadPdfShort" class="btn-download sidebar-download">Lataa PDF (lyhyt)</button>
-            <button id="downloadPdfFull" class="btn-download sidebar-download btn-download-full">Lataa PDF (laaja)</button>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <!-- Welcome Section -->
+        <div class="text-center mb-12">
+            <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                <span class="lang-fi">Tervetuloa!</span>
+                <span class="lang-en hidden">Welcome!</span>
+            </h2>
+            <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                <span class="lang-fi">
+                    Täältä löydät hyödyllisiä linkkejä ja vinkkejä työnhakuun, opiskeluun, arkeen, terveyteen ja muuhun tekemiseen. Osa sisältö on tarkoitettu erityisesti Tampereella ja Pirkanmaalla asuville, mutta suurin osa soveltuu muuallakin Suomessa.
+                </span>
+                <span class="lang-en hidden">
+                    Here you'll find useful links and tips for job search, education, daily life, health and other activities. Some content is specifically intended for residents of Tampere and the Pirkanmaa region, but most is applicable elsewhere in Finland.  
+                </span>
+            </p>
         </div>
-    </nav>
 
-    <div class="container">
-        <header>
-            <h1>Suuntia</h1>
-            <p class="subtitle">Työnhakua, opiskelua, tekemistä ja muita vaihtoehtoja</p>
-        </header>
+        <!-- Dynamic Hero Cards (populated by JavaScript) -->
+        <div id="heroCards" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 max-w-7xl mx-auto mb-16">
+            <!-- Cards will be dynamically generated here -->
+        </div>
 
-        <main id="content">
-            <!-- Sisältö ladataan content.md tiedostosta -->
-        </main>
+        <!-- Browse All Content Section -->
+        <div class="max-w-6xl mx-auto">
+            <div class="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                        <span class="lang-fi">Selaa kaikkea sisältöä</span>
+                        <span class="lang-en hidden">Browse All Content</span>
+                    </h2>
+                    <div class="flex gap-2 items-center flex-wrap">
+                        <!-- Sorting Burger Menu -->
+                        <div class="relative">
+                            <button onclick="toggleSortMenu()" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                                </svg>
+                                <span class="lang-fi">Järjestä</span>
+                                <span class="lang-en hidden">Sort</span>
+                            </button>
+                            <div id="sortMenu" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-10">
+                                <button data-sort="default" onclick="changeSortMode('default'); toggleSortMenu()" class="sort-menu-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg text-gray-900 dark:text-white">
+                                    <span class="lang-fi">Oletus</span>
+                                    <span class="lang-en hidden">Default</span>
+                                </button>
+                                <button data-sort="date" onclick="changeSortMode('date'); toggleSortMenu()" class="sort-menu-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white">
+                                    <span class="lang-fi">Päivämäärä</span>
+                                    <span class="lang-en hidden">Date</span>
+                                </button>
+                                <button data-sort="alphabetical" onclick="changeSortMode('alphabetical'); toggleSortMenu()" class="sort-menu-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white">
+                                    <span class="lang-fi">Aakkosjärjestys</span>
+                                    <span class="lang-en hidden">Alphabetical</span>
+                                </button>
+                                <button data-sort="tags" onclick="changeSortMode('tags'); toggleSortMenu()" class="sort-menu-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg text-gray-900 dark:text-white">
+                                    <span class="lang-fi">Tagit</span>
+                                    <span class="lang-en hidden">Tags</span>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- View Toggle -->
+                        <button id="viewToggle" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                            </svg>
+                            <span class="lang-fi">Lista</span>
+                            <span class="lang-en hidden">List</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="mb-6">
+                    <input 
+                        type="text" 
+                        id="searchInput"
+                        class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                        placeholder="">
+                </div>
 
-        <footer>
-            <p>Viimeksi päivitetty: <span id="lastUpdated">21.01.2026</span></p>
-        </footer>
+                <!-- Tag Filters -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                            <span class="lang-fi">Suodata tageilla:</span>
+                            <span class="lang-en hidden">Filter by tags:</span>
+                        </h3>
+                        <button id="multiSelectToggle" class="px-3 py-1 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-sm font-medium">
+                            <span class="lang-fi">Valitse useita</span>
+                            <span class="lang-en hidden">Multi-select</span>
+                        </button>
+                    </div>
+                    <div id="tagFilters" class="flex flex-wrap gap-2">
+                        <!-- Tags will be inserted here by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Results Count -->
+                <div class="mb-4">
+                    <p id="resultCount" class="text-sm text-gray-600 dark:text-gray-400"></p>
+                </div>
+
+                <!-- Content Grid -->
+                <div id="allContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Content will be inserted here by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Tip Modal -->
+    <div id="tipModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-8">
+                <div class="flex justify-between items-start mb-6">
+                    <h3 id="modalTitle" class="text-2xl font-bold text-gray-900 dark:text-white"></h3>
+                    <button onclick="closeTipModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="modalDescription" class="text-gray-700 dark:text-gray-300 mb-6"></div>
+                <div id="modalBody"></div>
+                <div id="modalTags" class="flex flex-wrap gap-2 mb-4"></div>
+                <div id="modalLinks"></div>
+                <div id="modalDate" class="text-sm text-gray-500 dark:text-gray-400 mt-4"></div>
+            </div>
+        </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-    
+    <!-- Load Scripts -->
+    <script src="loader.js"></script>
+    <!-- Footer -->
+    <footer class="bg-gray-100 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <p class="text-center text-sm text-gray-600 dark:text-gray-400">
+                <span data-lang="fi">Päivitetty viimeksi: 24.1.2026</span>
+                <span data-lang="en">Last updated: 24.1.2026</span>
+            </p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
     <script>
-    // PDF generation with pdfmake - two versions: short and full
-    function generatePDF(includeFullDescriptions = false) {
-        console.log('generatePDF called with includeFullDescriptions:', includeFullDescriptions);
-        
-        const sections = document.querySelectorAll('.info-section');
-        const content = [];
-        
-        // Header
-        content.push({
-            text: 'Suuntia',
-            style: 'header',
-            alignment: 'center',
-            margin: [0, 0, 0, 10]
-        });
-        
-        content.push({
-            text: 'Työnhakua, opiskelua, tekemistä ja muita vaihtoehtoja',
-            style: 'subheader',
-            alignment: 'center',
-            margin: [0, 0, 0, 5]
-        });
-        
-        const currentDate = new Date().toLocaleDateString('fi-FI');
-        content.push({
-            text: `Päivitetty: ${currentDate}`,
-            fontSize: 10,
-            color: '#666666',
-            alignment: 'center',
-            margin: [0, 0, 0, 20]
-        });
-        
-        if (includeFullDescriptions) {
-            content.push({
-                text: '(Pitkät kuvaukset)',
-                fontSize: 9,
-                color: '#999999',
-                alignment: 'center',
-                margin: [0, 0, 0, 10]
-            });
-        }
-        
-        // Process each section
-        sections.forEach((section, sectionIndex) => {
-            const title = section.querySelector('h2').textContent;
+        // Initialize the page when content is loaded
+        window.addEventListener('contentLoaded', (e) => {
+            // Update global references from event data
+            window.contentData = e.detail.content;
+            window.mainTagDefinitions = e.detail.mainTagDefinitions;
+            window.typeDefinitions = e.detail.typeDefinitions;
+            window.tagDefinitions = e.detail.tagDefinitions;
             
-            content.push({
-                text: title,
-                style: 'sectionHeader',
-                margin: [0, sectionIndex > 0 ? 20 : 10, 0, 10]
-            });
-            
-            const subcategories = section.querySelectorAll('.subcategory');
-            
-            if (subcategories.length > 0) {
-                subcategories.forEach(subcategory => {
-                    const subcategoryTitle = subcategory.textContent;
-                    content.push({
-                        text: subcategoryTitle,
-                        style: 'subcategoryHeader',
-                        margin: [0, 10, 0, 5]
-                    });
-                    
-                    let currentElement = subcategory.nextElementSibling;
-                    while (currentElement && currentElement.classList.contains('compact-list')) {
-                        processListItems(currentElement, content, includeFullDescriptions, 0);
-                        currentElement = currentElement.nextElementSibling;
-                        if (currentElement && currentElement.tagName === 'H3') break;
-                    }
-                });
-            } else {
-                const lists = section.querySelectorAll('.compact-list');
-                lists.forEach(list => {
-                    processListItems(list, content, includeFullDescriptions, 0);
-                });
-            }
+            initializePage();
+            generateHeroCards();
+            renderTagFilters();
+            renderContent();
         });
-        
-        const docDefinition = {
-            pageSize: 'A4',
-            pageMargins: [40, 60, 40, 60],
-            content: content,
-            styles: {
-                header: {
-                    fontSize: 24,
-                    bold: true,
-                    color: '#10b981'
-                },
-                subheader: {
-                    fontSize: 14,
-                    color: '#666666'
-                },
-                sectionHeader: {
-                    fontSize: 16,
-                    bold: true,
-                    color: '#10b981',
-                    margin: [0, 15, 0, 10]
-                },
-                subcategoryHeader: {
-                    fontSize: 13,
-                    bold: true,
-                    color: '#3b82f6',
-                    margin: [0, 10, 0, 5]
-                },
-                nestedSubsectionHeader: {
-                    fontSize: 11,
-                    bold: true,
-                    color: '#f97316',
-                    margin: [10, 8, 0, 5]
-                }
-            },
-            defaultStyle: {
-                fontSize: 11,
-                color: '#333333'
-            }
-        };
-        
-        const filename = includeFullDescriptions ? 
-            `Suuntia_laaja_${currentDate.replace(/\./g, '-')}.pdf` : 
-            `Suuntia_lyhyt_${currentDate.replace(/\./g, '-')}.pdf`;
-        
-        pdfMake.createPdf(docDefinition).download(filename);
-    }
-
-    function processListItems(listElement, content, includeFullDescriptions, indentLevel) {
-        const items = listElement.querySelectorAll(':scope > li');
-        
-        items.forEach(item => {
-            if (!item.classList || item.classList.contains('nested-content')) {
-                return;
-            }
-            
-            const indent = indentLevel * 10;
-            let linkElement = null;
-            let shortDescription = '';
-            let longDescription = '';
-            
-            if (item.classList.contains('expandable-item')) {
-                const wrapper = item.querySelector('.expandable-item-content');
-                if (wrapper) {
-                    linkElement = wrapper.querySelector('a');
-                    const fullText = wrapper.textContent || '';
-                    
-                    const infoIcon = wrapper.querySelector('.info-icon');
-                    if (infoIcon) {
-                        longDescription = infoIcon.getAttribute('data-tooltip') || '';
-                    }
-                    
-                    if (linkElement) {
-                        const linkText = linkElement.textContent;
-                        let tempText = fullText.replace(linkText, '').replace(/►/g, '').replace(/i$/g, '').trim();
-                        if (tempText.startsWith('-')) {
-                            tempText = tempText.substring(1).trim();
-                        }
-                        shortDescription = tempText;
-                    }
-                }
-                
-                if (linkElement) {
-                    addPDFItem(content, linkElement, shortDescription, longDescription, includeFullDescriptions, indent);
-                }
-                
-                const nestedContent = item.querySelector('.nested-content');
-                if (nestedContent) {
-                    const subsectionTitles = nestedContent.querySelectorAll('.nested-subsection-title');
-                    subsectionTitles.forEach(subsectionTitle => {
-                        content.push({
-                            text: subsectionTitle.textContent,
-                            style: 'nestedSubsectionHeader',
-                            margin: [indent + 10, 8, 0, 5]
-                        });
-                        
-                        const nestedList = subsectionTitle.nextElementSibling;
-                        if (nestedList && nestedList.classList.contains('nested-list')) {
-                            const nestedItems = nestedList.querySelectorAll('li');
-                            nestedItems.forEach(nestedItem => {
-                                const nestedLink = nestedItem.querySelector('a');
-                                const nestedInfoIcon = nestedItem.querySelector('.info-icon');
-                                
-                                let nestedShort = '';
-                                let nestedLong = '';
-                                
-                                if (nestedInfoIcon) {
-                                    nestedLong = nestedInfoIcon.getAttribute('data-tooltip') || '';
-                                }
-                                
-                                if (nestedLink) {
-                                    const linkText = nestedLink.textContent;
-                                    let tempText = nestedItem.textContent.replace(linkText, '').replace(/i$/g, '').trim();
-                                    if (tempText.startsWith('-')) {
-                                        tempText = tempText.substring(1).trim();
-                                    }
-                                    nestedShort = tempText;
-                                    
-                                    addPDFItem(content, nestedLink, nestedShort, nestedLong, includeFullDescriptions, indent + 20);
-                                }
-                            });
-                        }
-                    });
-                }
-            } else {
-                linkElement = item.querySelector('a');
-                const infoIcon = item.querySelector('.info-icon');
-                
-                if (infoIcon) {
-                    longDescription = infoIcon.getAttribute('data-tooltip') || '';
-                }
-                
-                if (linkElement) {
-                    const linkText = linkElement.textContent;
-                    let tempText = item.textContent.replace(linkText, '').replace(/i$/g, '').trim();
-                    if (tempText.startsWith('-')) {
-                        tempText = tempText.substring(1).trim();
-                    }
-                    shortDescription = tempText;
-                    
-                    addPDFItem(content, linkElement, shortDescription, longDescription, includeFullDescriptions, indent);
-                } else {
-                    content.push({
-                        text: item.textContent.replace(/i$/g, '').trim(),
-                        margin: [indent + 15, 3, 0, 3]
-                    });
-                }
-            }
-        });
-    }
-
-    function addPDFItem(content, linkElement, shortDescription, longDescription, includeFullDescriptions, indent) {
-        const linkText = linkElement.textContent;
-        const url = linkElement.href;
-        const descriptionToUse = includeFullDescriptions && longDescription ? longDescription : shortDescription;
-        
-        const item = {
-            margin: [indent, 3, 0, 3],
-            columns: [
-                { text: '•', width: 15 },
-                {
-                    stack: [
-                        {
-                            text: linkText,
-                            link: url,
-                            color: '#0066cc',
-                            decoration: 'underline',
-                            bold: true
-                        }
-                    ]
-                }
-            ]
-        };
-        
-        if (descriptionToUse) {
-            item.columns[1].stack.push({
-                text: descriptionToUse,
-                fontSize: includeFullDescriptions ? 10 : 9,
-                color: '#555555',
-                margin: [0, 2, 0, 0]
-            });
-        }
-        
-        content.push(item);
-    }
     </script>
-    
-    <script src="content-loader.js"></script>
-    <script src="script.js"></script>
 </body>
 </html>

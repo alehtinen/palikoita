@@ -1,8 +1,10 @@
-/README.md
 /content-backup-20260121-123658.md
 /content-broken.md
 /content-old.md
 /pdf-generator-old.js
 /pdf-generator.js
 /script-old.js
-/.DS_Store
+**/.DS_Store
+.DS_Store
+/DS_Store
+.DS_Store
