@@ -237,54 +237,58 @@
                 </h2>
                 <div class="flex gap-2 items-center flex-wrap">
                     <!-- Category Bookmarks Download -->
-                    <button onclick="downloadCategoryBookmarks()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors">
+                    <button onclick="downloadCategoryBookmarks()" class="p-2 sm:px-4 sm:py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
                         </svg>
-                        <span class="lang-fi">Kirjanmerkit</span>
-                        <span class="lang-en hidden">Bookmarks</span>
+                        <span class="hidden sm:inline lang-fi">Kirjanmerkit</span>
+                        <span class="hidden sm:inline lang-en">Bookmarks</span>
                     </button>
                     
                     <!-- Category PDF Download -->
-                    <button onclick="downloadCategoryPDF()" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors">
+                    <button onclick="downloadCategoryPDF()" class="p-2 sm:px-4 sm:py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
-                        <span class="lang-fi">PDF</span>
-                        <span class="lang-en hidden">PDF</span>
+                        <span class="hidden sm:inline lang-fi">PDF</span>
+                        <span class="hidden sm:inline lang-en">PDF</span>
                     </button>
                     
                     <!-- Sorting Burger Menu -->
                     <div class="relative">
-                        <button id="sortMenuBtn" onclick="toggleSortMenu()" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                        <button id="sortMenuBtn" onclick="toggleSortMenu()" class="p-2 sm:px-4 sm:py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"></path>
                             </svg>
                             <span class="hidden sm:inline lang-fi">Järjestä</span>
                             <span class="hidden sm:inline lang-en">Sort</span>
                         </button>
                         <div id="sortMenu" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50">
-                            <button data-sort="default" onclick="changeSortMode('default')" class="sort-menu-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg text-gray-900 dark:text-white">
+                            <button data-sort="default" onclick="changeSortMode('default'); toggleSortMenu()" class="sort-menu-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg text-gray-900 dark:text-white">
                                 <span class="lang-fi">Oletus</span>
-                                <span class="lang-en hidden">Default</span>
+                                <span class="lang-en">Default</span>
                             </button>
-                            <button data-sort="date" onclick="changeSortMode('date')" class="sort-menu-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white">
-                                <span class="lang-fi">Päivämäärä</span>
-                                <span class="lang-en hidden">Date</span>
+                            <button data-sort="added" onclick="changeSortMode('added'); toggleSortMenu()" class="sort-menu-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white">
+                                <span class="lang-fi">Lisätty</span>
+                                <span class="lang-en">Date Added</span>
                             </button>
-                            <button data-sort="alphabetical" onclick="changeSortMode('alphabetical')" class="sort-menu-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white">
+                            <button data-sort="updated" onclick="changeSortMode('updated'); toggleSortMenu()" class="sort-menu-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white">
+                                <span class="lang-fi">Päivitetty</span>
+                                <span class="lang-en">Date Updated</span>
+                            </button>
+                            <button data-sort="alphabetical" onclick="changeSortMode('alphabetical'); toggleSortMenu()" class="sort-menu-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white">
                                 <span class="lang-fi">Aakkosjärjestys</span>
-                                <span class="lang-en hidden">Alphabetical</span>
+                                <span class="lang-en">Alphabetical</span>
                             </button>
-                            <button data-sort="tags" onclick="changeSortMode('tags')" class="sort-menu-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg text-gray-900 dark:text-white">
+                            <button data-sort="tags" onclick="changeSortMode('tags'); toggleSortMenu()" class="sort-menu-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg text-gray-900 dark:text-white">
                                 <span class="lang-fi">Tagit</span>
-                                <span class="lang-en hidden">Tags</span>
+                                <span class="lang-en">Tags</span>
                             </button>
                         </div>
                     </div>
                     
                     <!-- View Toggle -->
-                    <button id="viewToggle" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                    <button id="viewToggle" class="p-2 sm:px-4 sm:py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
                         <!-- Filled by JavaScript -->
                     </button>
                 </div>
@@ -298,14 +302,14 @@
                     class="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
                     placeholder="">
                 <!-- Filter button -->
-                <button onclick="toggleTagFilters()" class="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg font-medium flex items-center gap-2 whitespace-nowrap">
-                    <span>
-                        <span class="lang-fi">Suodata tageilla</span>
-                        <span class="lang-en hidden">Filter by tags</span>
-                    </span>
+                <button onclick="toggleTagFilters()" class="px-3 sm:px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg font-medium flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
                     </svg>
+                    <span class="hidden sm:inline">
+                        <span class="lang-fi">Suodata tageilla</span>
+                        <span class="lang-en">Filter by tags</span>
+                    </span>
                 </button>
             </div>
 
@@ -387,7 +391,7 @@
             const allLink = document.createElement('a');
             allLink.href = 'index.html';
             allLink.className = 'px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors font-medium';
-            allLink.innerHTML = '<span class="lang-fi">← Kaikki</span><span class="lang-en hidden">← All</span>';
+            allLink.innerHTML = '<span class="lang-fi">← Kaikki</span><span class="lang-en">← All</span>';
             nav.appendChild(allLink);
             
             // Add mobile "All" link
@@ -395,7 +399,7 @@
                 const mobileAllLink = document.createElement('a');
                 mobileAllLink.href = 'index.html';
                 mobileAllLink.className = 'block px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors';
-                mobileAllLink.innerHTML = '<span class="lang-fi">← Kaikki</span><span class="lang-en hidden">← All</span>';
+                mobileAllLink.innerHTML = '<span class="lang-fi">← Kaikki</span><span class="lang-en">← All</span>';
                 mobileNav.appendChild(mobileAllLink);
             }
             
@@ -413,7 +417,7 @@
                     link.className = 'px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors font-medium';
                 }
                 
-                link.textContent = mainTagDef[currentLang];
+                link.innerHTML = `<span class="lang-fi">${mainTagDef.fi}</span><span class="lang-en">${mainTagDef.en}</span>`;
                 nav.appendChild(link);
                 
                 // Mobile link
@@ -427,7 +431,7 @@
                         mobileLink.className = 'block px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors';
                     }
                     
-                    mobileLink.textContent = mainTagDef[currentLang];
+                    mobileLink.innerHTML = `<span class="lang-fi">${mainTagDef.fi}</span><span class="lang-en">${mainTagDef.en}</span>`;
                     mobileNav.appendChild(mobileLink);
                 }
             });
@@ -472,8 +476,8 @@
     <footer class="bg-gray-100 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <p class="text-center text-sm text-gray-600 dark:text-gray-400">
-                <span data-lang="fi">Päivitetty viimeksi: 24.1.2026</span>
-                <span data-lang="en">Last updated: 24.1.2026</span>
+                <span class="lang-fi">Päivitetty viimeksi: 24.1.2026</span>
+                <span class="lang-en">Last updated: 24.1.2026</span>
             </p>
         </div>
     </footer>

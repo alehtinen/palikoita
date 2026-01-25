@@ -260,9 +260,9 @@
                     <div class="flex gap-2 items-center flex-wrap">
                         <!-- Sorting Burger Menu -->
                         <div class="relative">
-                            <button onclick="toggleSortMenu()" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                            <button id="sortMenuBtn" onclick="toggleSortMenu()" class="p-2 sm:px-4 sm:py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"></path>
                                 </svg>
                                 <span class="hidden sm:inline lang-fi">Järjestä</span>
                                 <span class="hidden sm:inline lang-en">Sort</span>
@@ -270,24 +270,28 @@
                             <div id="sortMenu" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-10">
                                 <button data-sort="default" onclick="changeSortMode('default'); toggleSortMenu()" class="sort-menu-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg text-gray-900 dark:text-white">
                                     <span class="lang-fi">Oletus</span>
-                                    <span class="lang-en hidden">Default</span>
+                                    <span class="lang-en">Default</span>
                                 </button>
-                                <button data-sort="date" onclick="changeSortMode('date'); toggleSortMenu()" class="sort-menu-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white">
-                                    <span class="lang-fi">Päivämäärä</span>
-                                    <span class="lang-en hidden">Date</span>
+                                <button data-sort="added" onclick="changeSortMode('added'); toggleSortMenu()" class="sort-menu-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white">
+                                    <span class="lang-fi">Lisätty</span>
+                                    <span class="lang-en">Date Added</span>
+                                </button>
+                                <button data-sort="updated" onclick="changeSortMode('updated'); toggleSortMenu()" class="sort-menu-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white">
+                                    <span class="lang-fi">Päivitetty</span>
+                                    <span class="lang-en">Date Updated</span>
                                 </button>
                                 <button data-sort="alphabetical" onclick="changeSortMode('alphabetical'); toggleSortMenu()" class="sort-menu-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white">
                                     <span class="lang-fi">Aakkosjärjestys</span>
-                                    <span class="lang-en hidden">Alphabetical</span>
+                                    <span class="lang-en">Alphabetical</span>
                                 </button>
                                 <button data-sort="tags" onclick="changeSortMode('tags'); toggleSortMenu()" class="sort-menu-item w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg text-gray-900 dark:text-white">
                                     <span class="lang-fi">Tagit</span>
-                                    <span class="lang-en hidden">Tags</span>
+                                    <span class="lang-en">Tags</span>
                                 </button>
                             </div>
                         </div>
                         <!-- View Toggle -->
-                        <button id="viewToggle" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                        <button id="viewToggle" class="p-2 sm:px-4 sm:py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
                             </svg>
@@ -305,14 +309,14 @@
                         class="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
                         placeholder="">
                     <!-- Filter button -->
-                    <button onclick="toggleTagFilters()" class="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg font-medium flex items-center gap-2 whitespace-nowrap">
-                        <span>
-                            <span class="lang-fi">Suodata tageilla</span>
-                            <span class="lang-en hidden">Filter by tags</span>
-                        </span>
+                    <button onclick="toggleTagFilters()" class="px-3 sm:px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg font-medium flex items-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
                         </svg>
+                        <span class="hidden sm:inline">
+                            <span class="lang-fi">Suodata tageilla</span>
+                            <span class="lang-en">Filter by tags</span>
+                        </span>
                     </button>
                 </div>
 
@@ -323,7 +327,7 @@
                         <div class="flex justify-end items-center mb-3">
                             <button id="multiSelectToggle" class="px-3 py-1 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-sm font-medium">
                                 <span class="lang-fi">Valitse useita</span>
-                                <span class="lang-en hidden">Multi-select</span>
+                                <span class="lang-en">Multi-select</span>
                             </button>
                         </div>
                         <div id="tagFilters" class="flex flex-wrap gap-2">
@@ -366,18 +370,17 @@
         </div>
     </div>
 
-    <!-- Load Scripts -->
-    <script src="loader.js"></script>
     <!-- Footer -->
     <footer class="bg-gray-100 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <p class="text-center text-sm text-gray-600 dark:text-gray-400">
-                <span data-lang="fi">Päivitetty viimeksi: 24.1.2026</span>
-                <span data-lang="en">Last updated: 24.1.2026</span>
+                <span class="lang-fi">Päivitetty viimeksi: 24.1.2026</span>
+                <span class="lang-en">Last updated: 24.1.2026</span>
             </p>
         </div>
     </footer>
 
+    <script src="loader.js"></script>
     <script src="app.js"></script>
     <script>
         // Initialize the page when content is loaded

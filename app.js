@@ -4,7 +4,7 @@ const SITE_NAME = 'Tekemistö'; // Change this to customize the site bookmark na
 
 // Global state
 let currentLang = localStorage.getItem('lang') || 'fi';
-let currentTheme = localStorage.getItem('theme') || 'light';
+let currentTheme = localStorage.getItem('theme') || 'dark';
 let currentMainTag = null; // null = show all, or specific main tag ID
 let activeFilters = new Set();
 let multiSelectMode = false;
@@ -342,8 +342,19 @@ function sortItems(items) {
     const sorted = [...items];
     
     switch (sortMode) {
-        case 'date':
-            sorted.sort((a, b) => new Date(b.added) - new Date(a.added));
+        case 'added':
+            sorted.sort((a, b) => {
+                const dateA = a.added ? new Date(a.added.split('.').reverse().join('-')) : new Date(0);
+                const dateB = b.added ? new Date(b.added.split('.').reverse().join('-')) : new Date(0);
+                return dateB - dateA;
+            });
+            break;
+        case 'updated':
+            sorted.sort((a, b) => {
+                const dateA = a.updated ? new Date(a.updated.split('.').reverse().join('-')) : (a.added ? new Date(a.added.split('.').reverse().join('-')) : new Date(0));
+                const dateB = b.updated ? new Date(b.updated.split('.').reverse().join('-')) : (b.added ? new Date(b.added.split('.').reverse().join('-')) : new Date(0));
+                return dateB - dateA;
+            });
             break;
         case 'alphabetical':
             sorted.sort((a, b) => a.title[currentLang].localeCompare(b.title[currentLang]));
@@ -371,9 +382,6 @@ function renderContent(searchTerm = '') {
     const filteredItems = filterItems(items, searchTerm);
     const sortedItems = sortItems(filteredItems);
     
-    // Store items globally for table view clicks
-    currentRenderedItems = sortedItems;
-    
     // Update result count
     updateResultCount(sortedItems.length);
     
@@ -395,14 +403,40 @@ function renderContent(searchTerm = '') {
         return;
     }
     
-    // Group items by first tag
+    // Group items by first tag (only in default mode)
     const groupedItems = new Map();
-    sortedItems.forEach(item => {
-        const firstTag = item.tags[0] || 'no-tag';
-        if (!groupedItems.has(firstTag)) {
-            groupedItems.set(firstTag, []);
-        }
-        groupedItems.get(firstTag).push(item);
+    const shouldGroup = sortMode === 'default';
+    
+    if (shouldGroup) {
+        sortedItems.forEach(item => {
+            const firstTag = item.tags[0] || 'no-tag';
+            if (!groupedItems.has(firstTag)) {
+                groupedItems.set(firstTag, []);
+            }
+            groupedItems.get(firstTag).push(item);
+        });
+        
+        // Sort subcategories alphabetically by tag label
+        const sortedGroupedItems = new Map(
+            Array.from(groupedItems.entries()).sort((a, b) => {
+                const tagDefA = window.tagDefinitions[a[0]];
+                const tagDefB = window.tagDefinitions[b[0]];
+                const labelA = tagDefA ? tagDefA[currentLang] : a[0];
+                const labelB = tagDefB ? tagDefB[currentLang] : b[0];
+                return labelA.localeCompare(labelB);
+            })
+        );
+        groupedItems.clear();
+        sortedGroupedItems.forEach((value, key) => groupedItems.set(key, value));
+    } else {
+        // When not in default mode, create one group with all items
+        groupedItems.set('all', sortedItems);
+    }
+    
+    // Store items in display order for modal clicks
+    currentRenderedItems = [];
+    groupedItems.forEach(items => {
+        currentRenderedItems.push(...items);
     });
     
     // Table view
@@ -419,9 +453,9 @@ function renderContent(searchTerm = '') {
             
             html += `
                 <div>
-                    <h3 class="text-lg font-semibold text-${tagColor}-700 dark:text-${tagColor}-400 mb-4 pb-2 border-b-2 border-${tagColor}-200 dark:border-${tagColor}-800">
+                    ${shouldGroup ? `<h3 class="text-lg font-semibold text-${tagColor}-700 dark:text-${tagColor}-400 mb-4 pb-2 border-b-2 border-${tagColor}-200 dark:border-${tagColor}-800">
                         ${tagLabel}
-                    </h3>
+                    </h3>` : ''}
                     <div class="overflow-x-auto">
                         <div class="inline-block min-w-full align-middle">
                             <div class="overflow-hidden">
@@ -434,8 +468,11 @@ function renderContent(searchTerm = '') {
                                     <th class="hidden md:table-cell px-6 py-0 sm:py-3 text-left text-xs font-medium text-transparent sm:text-gray-500 dark:sm:text-gray-400 uppercase tracking-wider">
                                         ${currentLang === 'fi' ? 'Kuvaus' : 'Description'}
                                     </th>
-                                    <th class="hidden lg:table-cell px-6 py-0 sm:py-3 text-left text-xs font-medium text-transparent sm:text-gray-500 dark:sm:text-gray-400 uppercase tracking-wider">
+                                    <th class="hidden xl:table-cell px-6 py-0 sm:py-3 text-left text-xs font-medium text-transparent sm:text-gray-500 dark:sm:text-gray-400 uppercase tracking-wider">
                                         ${currentLang === 'fi' ? 'Tagit' : 'Tags'}
+                                    </th>
+                                    <th class="hidden lg:table-cell px-6 py-0 sm:py-3 text-left text-xs font-medium text-transparent sm:text-gray-500 dark:sm:text-gray-400 uppercase tracking-wider w-32">
+                                        ${currentLang === 'fi' ? 'Päivämäärä' : 'Date'}
                                     </th>
                                     <th class="px-6 py-0 sm:py-3 text-center text-xs font-medium text-transparent sm:text-gray-500 dark:sm:text-gray-400 uppercase tracking-wider w-16"></th>
                                 </tr>
@@ -447,9 +484,19 @@ function renderContent(searchTerm = '') {
                                     const mainTagColor = mainTagDef ? mainTagDef.color : 'blue';
                                     const isLink = item.type === 'link' && item.url;
                                     
+                                    // Get latest date
+                                    let latestDate = '';
+                                    if (item.lastChecked) {
+                                        latestDate = item.lastChecked;
+                                    } else if (item.updated) {
+                                        latestDate = item.updated;
+                                    } else if (item.added) {
+                                        latestDate = item.added;
+                                    }
+                                    
                                     return `
                                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" onclick='showItemModal(${index})'>
-                                            <td class="px-6 py-4 whitespace-nowrap">
+                                            <td class="px-6 py-4">
                                                 <div class="text-sm font-medium text-${mainTagColor}-600 dark:text-${mainTagColor}-400">
                                                     ${item.title[currentLang]}
                                                 </div>
@@ -459,12 +506,17 @@ function renderContent(searchTerm = '') {
                                                     ${item.description[currentLang]}
                                                 </div>
                                             </td>
-                                            <td class="hidden lg:table-cell px-6 py-4">
+                                            <td class="hidden xl:table-cell px-6 py-4">
                                                 <div class="flex flex-wrap gap-1">
                                                     ${item.tags.map(tag => {
                                                         const tagDef = window.tagDefinitions[tag];
                                                         return tagDef ? `<span class="px-2 py-1 text-xs rounded-full bg-${tagDef.color}-100 dark:bg-${tagDef.color}-900 text-${tagDef.color}-800 dark:text-${tagDef.color}-200">${tagDef[currentLang]}</span>` : '';
                                                     }).join('')}
+                                                </div>
+                                            </td>
+                                            <td class="hidden lg:table-cell px-6 py-4">
+                                                <div class="text-xs text-gray-600 dark:text-gray-400 text-center">
+                                                    ${latestDate || ''}
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4 text-center">
@@ -505,9 +557,9 @@ function renderContent(searchTerm = '') {
         
         html += `
             <div>
-                <h3 class="text-lg font-semibold text-${tagColor}-700 dark:text-${tagColor}-400 mb-4 pb-2 border-b-2 border-${tagColor}-200 dark:border-${tagColor}-800">
+                ${sortMode === 'default' ? `<h3 class="text-lg font-semibold text-${tagColor}-700 dark:text-${tagColor}-400 mb-4 pb-2 border-b-2 border-${tagColor}-200 dark:border-${tagColor}-800">
                     ${tagLabel}
-                </h3>
+                </h3>` : ''}
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     ${items.map(item => {
                         const index = globalIndex++;
@@ -575,7 +627,6 @@ function changeSortMode(mode) {
     sortMode = mode;
     localStorage.setItem('sortMode', mode);
     updateSortButtons();
-    toggleSortMenu();
     renderContent();
 }
 
@@ -596,6 +647,18 @@ function toggleSortMenu() {
     const menu = document.getElementById('sortMenu');
     if (menu) {
         menu.classList.toggle('hidden');
+        
+        // Close menu when clicking outside
+        if (!menu.classList.contains('hidden')) {
+            setTimeout(() => {
+                document.addEventListener('click', function closeSortMenu(e) {
+                    if (!e.target.closest('#sortToggle') && !e.target.closest('#sortMenuBtn') && !e.target.closest('#sortMenu')) {
+                        menu.classList.add('hidden');
+                        document.removeEventListener('click', closeSortMenu);
+                    }
+                });
+            }, 0);
+        }
     }
 }
 
@@ -620,13 +683,6 @@ function toggleTagFilters() {
     }
 }
 
-function toggleMultiSelect() {
-    const button = document.getElementById('multiSelectToggle');
-    if (button) {
-        button.click();
-    }
-}
-
 // Modal Functions
 function showItemModal(index) {
     const item = currentRenderedItems[index];
@@ -645,13 +701,6 @@ function showItemModal(index) {
         modalBody.innerHTML = '';
     }
     
-    // Show tags
-    const modalTags = document.getElementById('modalTags');
-    modalTags.innerHTML = item.tags.map(tag => {
-        const tagDef = window.tagDefinitions[tag];
-        return tagDef ? `<span class="px-3 py-1 text-sm rounded-full bg-${tagDef.color}-100 dark:bg-${tagDef.color}-900 text-${tagDef.color}-800 dark:text-${tagDef.color}-200">${tagDef[currentLang]}</span>` : '';
-    }).join('');
-    
     // Combine links based on language
     let linksToShow = [];
     if (item.links) linksToShow = [...linksToShow, ...item.links];
@@ -664,7 +713,7 @@ function showItemModal(index) {
         modalLinks.innerHTML = `
             <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                    ${currentLang === 'fi' ? 'Linkit:' : 'Links:'}
+                    ${currentLang === 'fi' ? 'Lisätietoa:' : 'More info:'}
                 </h4>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -716,6 +765,13 @@ function showItemModal(index) {
     } else {
         modalLinks.innerHTML = '';
     }
+    
+    // Show tags below links
+    const modalTags = document.getElementById('modalTags');
+    modalTags.innerHTML = item.tags.map(tag => {
+        const tagDef = window.tagDefinitions[tag];
+        return tagDef ? `<span class="px-3 py-1 text-sm rounded-full bg-${tagDef.color}-100 dark:bg-${tagDef.color}-900 text-${tagDef.color}-800 dark:text-${tagDef.color}-200">${tagDef[currentLang]}</span>` : '';
+    }).join('');
     
     // Show dates
     const modalDate = document.getElementById('modalDate');
