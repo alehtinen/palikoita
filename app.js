@@ -1,6 +1,6 @@
 // Site Configuration
 const SITE_URL = 'http://localhost:8001'; // Change this to your production URL
-const SITE_NAME = 'Tekemistö'; // Change this to customize the site bookmark name
+const SITE_NAME = 'Päivää!'; // Change this to customize the site bookmark name
 
 // Global state
 let currentLang = localStorage.getItem('lang') || 'fi';
@@ -497,12 +497,12 @@ function renderContent(searchTerm = '') {
                                     return `
                                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" onclick='showItemModal(${index})'>
                                             <td class="px-6 py-4">
-                                                <div class="text-sm font-medium text-${mainTagColor}-600 dark:text-${mainTagColor}-400">
+                                                <div class="text-sm font-medium text-${mainTagColor}-600 dark:text-${mainTagColor}-400 break-words">
                                                     ${item.title[currentLang]}
                                                 </div>
                                             </td>
                                             <td class="hidden md:table-cell px-6 py-4">
-                                                <div class="text-sm text-gray-600 dark:text-gray-400 max-w-md line-clamp-2">
+                                                <div class="text-sm text-gray-600 dark:text-gray-400 max-w-md line-clamp-2 break-words">
                                                     ${item.description[currentLang]}
                                                 </div>
                                             </td>
@@ -588,11 +588,11 @@ function renderContent(searchTerm = '') {
                                         </svg>
                                         `}
                                     </div>
-                                    <div class="flex-1 ${isLink ? 'pr-8' : ''}">
-                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                    <div class="flex-1 ${isLink ? 'pr-8' : ''} min-w-0">
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2 break-words">
                                             ${item.title[currentLang]}
                                         </h3>
-                                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
+                                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2 break-words">
                                             ${item.description[currentLang]}
                                         </p>
                                         <div class="flex flex-wrap gap-2">
@@ -1137,8 +1137,9 @@ function confirmZipDownload() {
         return;
     }
     const includeCombined = document.getElementById('zipIncludeCombined')?.checked ?? true;
+    const includeBookmarks = document.getElementById('zipIncludeBookmarks')?.checked ?? true;
     closeExportModal('zip');
-    downloadAllPDFsAsZip(selectedCategories, includeCombined);
+    downloadAllPDFsAsZip(selectedCategories, includeCombined, includeBookmarks);
 }
 
 function confirmBookmarkDownload() {
@@ -1307,7 +1308,7 @@ function generateMainTagPDF(mainTagId) {
 }
 
 // Download all PDFs as a ZIP file
-async function downloadAllPDFsAsZip(selectedCategories = null, includeCombined = true) {
+async function downloadAllPDFsAsZip(selectedCategories = null, includeCombined = true, includeBookmarks = true) {
     if (!window.contentData || !window.mainTagDefinitions) return;
     
     const zip = new JSZip();
@@ -1413,6 +1414,94 @@ async function downloadAllPDFsAsZip(selectedCategories = null, includeCombined =
         zip.file(`${combinedTitle}.pdf`, combinedBlob);
     }
     
+    // Generate and add bookmark file if includeBookmarks is true
+    if (includeBookmarks) {
+        const timestamp = Math.floor(Date.now() / 1000);
+        const bookmarkTitle = currentLang === 'fi' ? 'Päivää! Kirjanmerkit' : 'Päivää! Bookmarks';
+        
+        let html = `<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<!-- This is an automatically generated file.
+     It will be read and overwritten.
+     DO NOT EDIT! -->
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>${bookmarkTitle}</TITLE>
+<H1>${bookmarkTitle}</H1>
+<DL><p>
+    <DT><A HREF="${SITE_URL}" ADD_DATE="${timestamp}">${SITE_NAME}</A>
+`;
+        
+        mainTagsToProcess.forEach(mainTagId => {
+            const mainTagDef = window.mainTagDefinitions[mainTagId];
+            const items = window.contentData.filter(item => item.mainTag === mainTagId);
+            
+            if (items.length === 0) return;
+            
+            html += `    <DT><H3 ADD_DATE="${timestamp}" LAST_MODIFIED="${timestamp}">${mainTagDef[currentLang]}</H3>\n`;
+            html += `    <DL><p>\n`;
+            
+            const groupedItems = new Map();
+            items.forEach(item => {
+                const firstTag = item.tags[0] || 'no-tag';
+                if (!groupedItems.has(firstTag)) {
+                    groupedItems.set(firstTag, []);
+                }
+                groupedItems.get(firstTag).push(item);
+            });
+            
+            groupedItems.forEach((groupItems, firstTag) => {
+                const tagDef = window.tagDefinitions[firstTag];
+                const tagLabel = tagDef ? tagDef[currentLang] : firstTag;
+                
+                html += `        <DT><H3 ADD_DATE="${timestamp}" LAST_MODIFIED="${timestamp}">${tagLabel}</H3>\n`;
+                html += `        <DL><p>\n`;
+                
+                groupItems.forEach(item => {
+                    let allLinks = [];
+                    
+                    if (item.url) {
+                        allLinks.push({
+                            url: item.url,
+                            title: item.title[currentLang],
+                            description: item.description[currentLang]
+                        });
+                    }
+                    
+                    let additionalLinks = [];
+                    if (item.links) additionalLinks = [...additionalLinks, ...item.links];
+                    if (currentLang === 'fi' && item.linksFI) additionalLinks = [...additionalLinks, ...item.linksFI];
+                    if (currentLang === 'en' && item.linksEN) additionalLinks = [...additionalLinks, ...item.linksEN];
+                    
+                    additionalLinks.forEach(link => {
+                        allLinks.push({
+                            url: link.url,
+                            title: link.name || item.title[currentLang],
+                            description: link.description || ''
+                        });
+                    });
+                    
+                    allLinks.forEach(link => {
+                        const escapedTitle = link.title.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        const escapedDesc = link.description.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        html += `            <DT><A HREF="${link.url}" ADD_DATE="${timestamp}"`;
+                        if (escapedDesc) {
+                            html += ` DESCRIPTION="${escapedDesc}"`;
+                        }
+                        html += `>${escapedTitle}</A>\n`;
+                    });
+                });
+                
+                html += `        </DL><p>\n`;
+            });
+            
+            html += `    </DL><p>\n`;
+        });
+        
+        html += `</DL><p>\n`;
+        
+        const bookmarkBlob = new Blob([html], { type: 'text/html' });
+        zip.file(`${bookmarkTitle}.html`, bookmarkBlob);
+    }
+    
     // Generate and download the ZIP file
     const zipBlob = await zip.generateAsync({ type: 'blob' });
     const url = URL.createObjectURL(zipBlob);
@@ -1437,7 +1526,7 @@ function downloadBookmarks(selectedCategories = null) {
     if (!window.contentData || !window.mainTagDefinitions) return;
     
     const timestamp = Math.floor(Date.now() / 1000);
-    const title = currentLang === 'fi' ? 'Tekemistö Kirjanmerkit' : 'Tekemistö Bookmarks';
+    const title = currentLang === 'fi' ? 'Päivää! Kirjanmerkit' : 'Päivää! Bookmarks';
     
     let html = `<!DOCTYPE NETSCAPE-Bookmark-file-1>
 <!-- This is an automatically generated file.

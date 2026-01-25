@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tekemistö - Hakemisto joka sisältää myös tekemistä</title>
+    <title>Päivää! - Linkkejä ja vinkkejä ja muuta mukavaa</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -89,7 +89,7 @@
             <div class="flex flex-wrap justify-between items-center gap-4">
                 <div class="min-w-0">
                     <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
-                        Tekemistö
+                        Päivää!
                     </h1>
                 </div>
                 <div class="flex items-center gap-1 flex-wrap flex-shrink-0">
@@ -136,8 +136,8 @@
                 </div>
             </div>
             <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-4">
-                <span class="lang-fi">Hakemisto joka sisältää myös tekemistä. Tamperelaisille ja vähän muillekin.</span>
-                <span class="lang-en">Index that also includes activities. For residents of Tampere and some for others too.</span>
+                <span class="lang-fi">Linkkejä ja vinkkejä ja muuta mukavaa. Tamperelaisille ja vähän muillekin.</span>
+                <span class="lang-en">Links and tips and stuff. For residents of Tampere and some for others too.</span>
             </p>
         </div>
     </header>
@@ -178,12 +178,19 @@
                 <span class="lang-en">Create a ZIP archive containing separate PDFs for each selected category plus a combined PDF of all.</span>
             </p>
             <div class="space-y-2 mb-4" id="zipCategories"></div>
-            <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mb-6">
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mb-6 space-y-2">
                 <label class="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" id="zipIncludeCombined" checked class="w-4 h-4 text-purple-600 rounded">
                     <span class="text-gray-900 dark:text-white font-medium">
                         <span class="lang-fi">Sisällytä yhdistetty PDF (kaikki kategoriat yhdessä tiedostossa)</span>
                         <span class="lang-en">Include combined PDF (all categories in one file)</span>
+                    </span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="zipIncludeBookmarks" checked class="w-4 h-4 text-purple-600 rounded">
+                    <span class="text-gray-900 dark:text-white font-medium">
+                        <span class="lang-fi">Sisällytä kirjanmerkkitiedosto</span>
+                        <span class="lang-en">Include bookmark file</span>
                     </span>
                 </label>
             </div>
@@ -229,15 +236,15 @@
         <!-- Welcome Section -->
         <div class="text-center mb-12">
             <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                <span class="lang-fi">Tervetuloa!</span>
-                <span class="lang-en">Welcome!</span>
+                <span class="lang-fi">Hyvää päivää!</span>
+                <span class="lang-en">Good day!</span>
             </h2>
             <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
                 <span class="lang-fi">
-                    Täältä löydät hyödyllisiä linkkejä ja vinkkejä työnhakuun, opiskeluun, arkeen, terveyteen ja muuhun tekemiseen. Osa sisältö on tarkoitettu erityisesti Tampereella ja Pirkanmaalla asuville, mutta suurin osa soveltuu muuallakin Suomessa.
+                    Täältä löydät (ehkä) hyödyllisiä linkkejä ja vinkkejä työnhakuun, opiskeluun, arkeen, terveyteen ja muuhun tekemiseen. Osa sisältö on tarkoitettu erityisesti Tampereella ja Pirkanmaalla asuville, mutta suurin osa soveltuu muuallakin Suomessa.
                 </span>
                 <span class="lang-en">
-                    Here you'll find useful links and tips for job search, education, daily life, health and other activities. Some content is specifically intended for residents of Tampere and the Pirkanmaa region, but most is applicable elsewhere in Finland.  
+                    Here you'll (maybe) find useful links and tips for job search, education, daily life, health and other activities. Some content is specifically intended for residents of Tampere and the Pirkanmaa region, but most is applicable elsewhere in Finland.  
                 </span>
             </p>
                 </span>
@@ -252,12 +259,12 @@
         <!-- Browse All Content Section -->
         <div class="max-w-6xl mx-auto">
             <div class="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl p-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-                        <span class="lang-fi">Selaa kaikkea sisältöä</span>
-                        <span class="lang-en">Browse All Content</span>
+                <div class="flex justify-between items-center mb-6 gap-4 flex-wrap sm:flex-nowrap">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex-shrink-0">
+                        <span class="lang-fi">Sisällysluettelo</span>
+                        <span class="lang-en">Table of Contents</span>
                     </h2>
-                    <div class="flex gap-2 items-center flex-wrap">
+                    <div class="flex gap-2 items-center flex-shrink-0">
                         <!-- Sorting Burger Menu -->
                         <div class="relative">
                             <button id="sortMenuBtn" onclick="toggleSortMenu()" class="p-2 sm:px-4 sm:py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">

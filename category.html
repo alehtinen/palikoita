@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tekemistö</title>
+    <title>Päivää!</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -78,7 +78,7 @@
                 <div class="min-w-0">
                     <a href="index.html" class="hover:opacity-80 transition-opacity">
                         <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
-                            Tekemistö
+                            Päivää!
                         </h1>
                     </a>
                     <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1" id="categorySubtitle">
@@ -181,12 +181,19 @@
                 <span class="lang-en">Create a ZIP archive containing separate PDFs for each selected category plus a combined PDF of all.</span>
             </p>
             <div class="space-y-2 mb-4" id="zipCategories"></div>
-            <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mb-6">
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mb-6 space-y-2">
                 <label class="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" id="zipIncludeCombined" checked class="w-4 h-4 text-purple-600 rounded">
                     <span class="text-gray-900 dark:text-white font-medium">
                         <span class="lang-fi">Sisällytä yhdistetty PDF (kaikki kategoriat yhdessä tiedostossa)</span>
                         <span class="lang-en">Include combined PDF (all categories in one file)</span>
+                    </span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="zipIncludeBookmarks" checked class="w-4 h-4 text-purple-600 rounded">
+                    <span class="text-gray-900 dark:text-white font-medium">
+                        <span class="lang-fi">Sisällytä kirjanmerkkitiedosto</span>
+                        <span class="lang-en">Include bookmark file</span>
                     </span>
                 </label>
             </div>
@@ -480,7 +487,7 @@
                 const categoryDef = window.mainTagDefinitions[categoryId];
                 
                 // Update page title and subtitle
-                document.title = `${categoryDef[currentLang]} - Tekemistö`;
+                document.title = `${categoryDef[currentLang]} - Päivää!`;
                 document.getElementById('categoryTitle').textContent = categoryDef[currentLang];
                 document.getElementById('categorySubtitle').textContent = categoryDef[currentLang];
             } else {

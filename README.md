@@ -1,8 +1,7 @@
-# "Tekemistö"
+# "Päivää"
 
-Nimi on kauhea, mutta sivusto on hakemisto joka sisältää linkkien lisäksi myös vinkkejä kuten tekemisehdotuksia. 
-Joten hakemisto + tekemistä = Tekemistö.
-Että semmosta.
+Päivää päivää. Että semmosta.
+Lyhyen ja selkeän nimen keksiminen on vaikeaa kun kriteereihin kuuluu domain joka olisi halpa, helposti lähestyttävissä ja saatavilla.
 
 ## Mistä on kyse
 
@@ -10,6 +9,7 @@ Tämän projektin tarkoitus on helpottaa tiedonhakua ja arkea tukevien asioiden 
 Sivun rakenne ja toimivuus on luotu tekoälyavusteisesti, mutta kaikki sisältö on ihmisen kirjoittamaa.
 Sivusto on vielä kesken.
 Tämän sivun pääasiallinen osoite on https://tekemisto.alegc.fi
+VIelä hetken.
 
 ## Kenelle
 
@@ -35,3 +35,4 @@ Hinta.
 - Mahdollisuus suodattaa sisältöä avainsanojen avulla
 - Hakupalkki, jotta voit hakea sisältöä myös sanojen eikä vain pelkkien avainsanojen avulla
 - Mahdollisuus ladata sivun sisältö joko kokonaan tai pääkategorioiden mukaisesti HTML-tiedostona, jonka avulla sivut voi lisätä suoraan nettiselaimeen kirjanmerkeiksi.
+- Sivuston sisällön voi ladata myös zippipakettina johon voi valita ne kategoriat jotka haluaa. Pakettiin saa mukaan halutessaan myös kaikki kategoriat sisältän pdf:n ja vaihtoehtona on myöskin kirjanmerkkitiedosto.
