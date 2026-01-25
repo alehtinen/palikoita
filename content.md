@@ -8,6 +8,7 @@ opiskelu: Opiskelu | Studies | blue |
 terveys: Terveys | Health | purple | 
 työttömyys: Työttömyys | Unemployment | red | 
 vapaa-aika: Vapaa-aika | Leisure | indigo
+tampere: Tampere | Tampere | orange
 
 ## Types
 

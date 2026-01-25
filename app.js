@@ -960,8 +960,82 @@ function downloadMainTagPDF(mainTagId) {
     doc.save(`${title}.pdf`);
 }
 
+// Export Modal Management
+function showExportModal(type) {
+    const modalId = type + 'Modal';
+    const categoriesId = type + 'Categories';
+    const modal = document.getElementById(modalId);
+    const categoriesContainer = document.getElementById(categoriesId);
+    
+    if (!modal || !categoriesContainer || !window.mainTagDefinitions) return;
+    
+    // Build checkboxes for each main category
+    categoriesContainer.innerHTML = '';
+    Object.keys(window.mainTagDefinitions).forEach(mainTagId => {
+        const mainTagDef = window.mainTagDefinitions[mainTagId];
+        const label = document.createElement('label');
+        label.className = 'flex items-center gap-2 cursor-pointer';
+        label.innerHTML = `
+            <input type="checkbox" value="${mainTagId}" checked class="w-4 h-4 text-blue-600 rounded">
+            <span class="text-gray-900 dark:text-white">${mainTagDef[currentLang]}</span>
+        `;
+        categoriesContainer.appendChild(label);
+    });
+    
+    modal.classList.remove('hidden');
+    applyLanguage(); // Ensure language is applied to modal content
+}
+
+function closeExportModal(type) {
+    const modalId = type + 'Modal';
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+function getSelectedCategories(type) {
+    const categoriesId = type + 'Categories';
+    const categoriesContainer = document.getElementById(categoriesId);
+    if (!categoriesContainer) return [];
+    
+    const checkboxes = categoriesContainer.querySelectorAll('input[type="checkbox"]:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
+}
+
+function confirmPdfDownload() {
+    const selectedCategories = getSelectedCategories('pdf');
+    if (selectedCategories.length === 0) {
+        alert(currentLang === 'fi' ? 'Valitse vähintään yksi kategoria' : 'Please select at least one category');
+        return;
+    }
+    closeExportModal('pdf');
+    downloadCombinedPDF(selectedCategories);
+}
+
+function confirmZipDownload() {
+    const selectedCategories = getSelectedCategories('zip');
+    if (selectedCategories.length === 0) {
+        alert(currentLang === 'fi' ? 'Valitse vähintään yksi kategoria' : 'Please select at least one category');
+        return;
+    }
+    const includeCombined = document.getElementById('zipIncludeCombined')?.checked ?? true;
+    closeExportModal('zip');
+    downloadAllPDFsAsZip(selectedCategories, includeCombined);
+}
+
+function confirmBookmarkDownload() {
+    const selectedCategories = getSelectedCategories('bookmark');
+    if (selectedCategories.length === 0) {
+        alert(currentLang === 'fi' ? 'Valitse vähintään yksi kategoria' : 'Please select at least one category');
+        return;
+    }
+    closeExportModal('bookmark');
+    downloadBookmarks(selectedCategories);
+}
+
 // Download combined PDF with all main tags
-function downloadCombinedPDF() {
+function downloadCombinedPDF(selectedCategories = null) {
     if (!window.contentData || !window.mainTagDefinitions) return;
     
     const { jsPDF } = window.jspdf;
@@ -986,8 +1060,9 @@ function downloadCombinedPDF() {
     doc.text(`${currentLang === 'fi' ? 'Luotu' : 'Generated'}: ${new Date().toLocaleDateString()}`, leftMargin, y);
     y += 15;
     
-    // Process each main tag
-    Object.keys(window.mainTagDefinitions).forEach((mainTagId, mainIndex) => {
+    // Process each main tag (filtered if selectedCategories provided)
+    const mainTagsToProcess = selectedCategories || Object.keys(window.mainTagDefinitions);
+    mainTagsToProcess.forEach((mainTagId, mainIndex) => {
         const mainTagDef = window.mainTagDefinitions[mainTagId];
         const items = window.contentData.filter(item => item.mainTag === mainTagId);
         
@@ -1115,13 +1190,14 @@ function generateMainTagPDF(mainTagId) {
 }
 
 // Download all PDFs as a ZIP file
-async function downloadAllPDFsAsZip() {
+async function downloadAllPDFsAsZip(selectedCategories = null, includeCombined = true) {
     if (!window.contentData || !window.mainTagDefinitions) return;
     
     const zip = new JSZip();
     
-    // Generate a PDF for each main tag
-    Object.keys(window.mainTagDefinitions).forEach(mainTagId => {
+    // Generate a PDF for each main tag (filtered if selectedCategories provided)
+    const mainTagsToProcess = selectedCategories || Object.keys(window.mainTagDefinitions);
+    mainTagsToProcess.forEach(mainTagId => {
         const items = window.contentData.filter(item => item.mainTag === mainTagId);
         if (items.length === 0) return;
         
@@ -1132,30 +1208,31 @@ async function downloadAllPDFsAsZip() {
         }
     });
     
-    // Generate the combined PDF
-    const { jsPDF } = window.jspdf;
-    const combinedDoc = new jsPDF();
-    const combinedTitle = currentLang === 'fi' ? 'Kaikki Tiedot' : 'All Information';
-    
-    let y = 20;
-    const pageHeight = 280;
-    const leftMargin = 20;
-    const rightMargin = 190;
-    
-    // Title
-    combinedDoc.setFontSize(22);
-    combinedDoc.setFont(undefined, 'bold');
-    combinedDoc.text(combinedTitle, leftMargin, y);
-    y += 12;
-    
-    // Generation date
-    combinedDoc.setFontSize(10);
-    combinedDoc.setFont(undefined, 'normal');
-    combinedDoc.text(`${currentLang === 'fi' ? 'Luotu' : 'Generated'}: ${new Date().toLocaleDateString()}`, leftMargin, y);
-    y += 15;
-    
-    // Process each main tag
-    Object.keys(window.mainTagDefinitions).forEach((mainTagId, mainIndex) => {
+    // Generate the combined PDF only if includeCombined is true
+    if (includeCombined) {
+        const { jsPDF } = window.jspdf;
+        const combinedDoc = new jsPDF();
+        const combinedTitle = currentLang === 'fi' ? 'Kaikki Tiedot' : 'All Information';
+        
+        let y = 20;
+        const pageHeight = 280;
+        const leftMargin = 20;
+        const rightMargin = 190;
+        
+        // Title
+        combinedDoc.setFontSize(22);
+        combinedDoc.setFont(undefined, 'bold');
+        combinedDoc.text(combinedTitle, leftMargin, y);
+        y += 12;
+        
+        // Generation date
+        combinedDoc.setFontSize(10);
+        combinedDoc.setFont(undefined, 'normal');
+        combinedDoc.text(`${currentLang === 'fi' ? 'Luotu' : 'Generated'}: ${new Date().toLocaleDateString()}`, leftMargin, y);
+        y += 15;
+        
+        // Process each main tag (use same filtered list)
+        mainTagsToProcess.forEach((mainTagId, mainIndex) => {
         const mainTagDef = window.mainTagDefinitions[mainTagId];
         const items = window.contentData.filter(item => item.mainTag === mainTagId);
         
@@ -1215,8 +1292,9 @@ async function downloadAllPDFsAsZip() {
         });
     });
     
-    const combinedBlob = combinedDoc.output('blob');
-    zip.file(`${combinedTitle}.pdf`, combinedBlob);
+        const combinedBlob = combinedDoc.output('blob');
+        zip.file(`${combinedTitle}.pdf`, combinedBlob);
+    }
     
     // Generate and download the ZIP file
     const zipBlob = await zip.generateAsync({ type: 'blob' });
@@ -1238,7 +1316,7 @@ function downloadCategoryPDF() {
 }
 
 // Download bookmarks as HTML file (Netscape Bookmark format)
-function downloadBookmarks() {
+function downloadBookmarks(selectedCategories = null) {
     if (!window.contentData || !window.mainTagDefinitions) return;
     
     const timestamp = Math.floor(Date.now() / 1000);
@@ -1255,8 +1333,9 @@ function downloadBookmarks() {
     <DT><A HREF="${SITE_URL}" ADD_DATE="${timestamp}">${SITE_NAME}</A>
 `;
     
-    // Process each main tag
-    Object.keys(window.mainTagDefinitions).forEach(mainTagId => {
+    // Process each main tag (filtered if selectedCategories provided)
+    const mainTagsToProcess = selectedCategories || Object.keys(window.mainTagDefinitions);
+    mainTagsToProcess.forEach(mainTagId => {
         const mainTagDef = window.mainTagDefinitions[mainTagId];
         const items = window.contentData.filter(item => item.mainTag === mainTagId);
         

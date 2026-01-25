@@ -98,7 +98,7 @@
                 </div>
                 <div class="flex items-center gap-1 sm:gap-2 flex-wrap">
                     <!-- Bookmarks Download -->
-                    <button onclick="downloadBookmarks()" class="px-2 sm:px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium flex items-center gap-1 transition-colors text-xs sm:text-sm">
+                    <button onclick="showExportModal('bookmark')" class="px-2 sm:px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium flex items-center gap-1 transition-colors text-xs sm:text-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
                         </svg>
@@ -107,7 +107,7 @@
                     </button>
                     
                     <!-- Combined PDF Download -->
-                    <button onclick="downloadCombinedPDF()" class="px-2 sm:px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-1 transition-colors text-xs sm:text-sm">
+                    <button onclick="showExportModal('pdf')" class="px-2 sm:px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-1 transition-colors text-xs sm:text-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
@@ -116,7 +116,7 @@
                     </button>
                     
                     <!-- ZIP Download -->
-                    <button onclick="downloadAllPDFsAsZip()" class="px-2 sm:px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-1 transition-colors text-xs sm:text-sm">
+                    <button onclick="showExportModal('zip')" class="px-2 sm:px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-1 transition-colors text-xs sm:text-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"></path>
                         </svg>
@@ -141,6 +141,88 @@
             </div>
         </div>
     </header>
+
+    <!-- Export Selection Modals -->
+    <div id="pdfModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                <span class="lang-fi">Lataa PDF</span>
+                <span class="lang-en">Download PDF</span>
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">
+                <span class="lang-fi">Luo PDF-tiedosto valituista kategorioista. Sisältää kaikki tiedot, linkit ja kuvaukset.</span>
+                <span class="lang-en">Create a PDF file from selected categories. Includes all information, links and descriptions.</span>
+            </p>
+            <div class="space-y-2 mb-6" id="pdfCategories"></div>
+            <div class="flex gap-2 justify-end">
+                <button onclick="closeExportModal('pdf')" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                    <span class="lang-fi">Peruuta</span>
+                    <span class="lang-en">Cancel</span>
+                </button>
+                <button onclick="confirmPdfDownload()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                    <span class="lang-fi">Lataa PDF</span>
+                    <span class="lang-en">Download PDF</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="zipModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                <span class="lang-fi">Lataa ZIP</span>
+                <span class="lang-en">Download ZIP</span>
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">
+                <span class="lang-fi">Luo ZIP-arkisto, joka sisältää erillisen PDF:n jokaisesta valitusta kategoriasta sekä yhdistetyn PDF:n kaikista.</span>
+                <span class="lang-en">Create a ZIP archive containing separate PDFs for each selected category plus a combined PDF of all.</span>
+            </p>
+            <div class="space-y-2 mb-4" id="zipCategories"></div>
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mb-6">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="zipIncludeCombined" checked class="w-4 h-4 text-purple-600 rounded">
+                    <span class="text-gray-900 dark:text-white font-medium">
+                        <span class="lang-fi">Sisällytä yhdistetty PDF (kaikki kategoriat yhdessä tiedostossa)</span>
+                        <span class="lang-en">Include combined PDF (all categories in one file)</span>
+                    </span>
+                </label>
+            </div>
+            <div class="flex gap-2 justify-end">
+                <button onclick="closeExportModal('zip')" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                    <span class="lang-fi">Peruuta</span>
+                    <span class="lang-en">Cancel</span>
+                </button>
+                <button onclick="confirmZipDownload()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors">
+                    <span class="lang-fi">Lataa ZIP</span>
+                    <span class="lang-en">Download ZIP</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="bookmarkModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                <span class="lang-fi">Lataa Kirjanmerkit</span>
+                <span class="lang-en">Download Bookmarks</span>
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">
+                <span class="lang-fi">Vie linkit HTML-kirjanmerkkitiedostona, jonka voi tuoda selaimeen. Sisältää kansiorakenteen kategorioittain.</span>
+                <span class="lang-en">Export links as HTML bookmarks file that can be imported to your browser. Includes folder structure by category.</span>
+            </p>
+            <div class="space-y-2 mb-6" id="bookmarkCategories"></div>
+            <div class="flex gap-2 justify-end">
+                <button onclick="closeExportModal('bookmark')" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                    <span class="lang-fi">Peruuta</span>
+                    <span class="lang-en">Cancel</span>
+                </button>
+                <button onclick="confirmBookmarkDownload()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                    <span class="lang-fi">Lataa Kirjanmerkit</span>
+                    <span class="lang-en">Download Bookmarks</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
