@@ -696,6 +696,15 @@ function showItemModal(index) {
     const item = currentRenderedItems[index];
     if (!item) return;
     
+    showItemModalDirect(item);
+}
+
+function showItemModalDirect(item) {
+    if (!item) return;
+    
+    // Store current item globally for PDF download
+    window._currentModalItem = item;
+    
     const modal = document.getElementById('tipModal');
     document.getElementById('modalTitle').textContent = item.title[currentLang];
     document.getElementById('modalDescription').textContent = item.description[currentLang];
@@ -730,7 +739,7 @@ function showItemModal(index) {
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                                     ${currentLang === 'fi' ? 'Nimi' : 'Name'}
                                 </th>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                                <th class="hidden md:table-cell px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                                     ${currentLang === 'fi' ? 'Kuvaus' : 'Description'}
                                 </th>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
@@ -742,7 +751,7 @@ function showItemModal(index) {
                             ${linksToShow.map(link => `
                                 <tr>
                                     <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">${link.name}</td>
-                                    <td class="px-4 py-2 text-sm text-gray-600 dark:text-gray-400">${link.description}</td>
+                                    <td class="hidden md:table-cell px-4 py-2 text-sm text-gray-600 dark:text-gray-400">${link.description}</td>
                                     <td class="px-4 py-2 text-sm">
                                         <a href="${link.url}" target="_blank" class="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -778,7 +787,7 @@ function showItemModal(index) {
     const modalPdfButton = document.getElementById('modalPdfButton');
     if (item.downloadablePDF) {
         modalPdfButton.innerHTML = `
-            <button onclick="downloadItemPDF(${index})" class="inline-flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors">
+            <button onclick="downloadCurrentItemPDF()" class="inline-flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
@@ -814,10 +823,9 @@ function showItemModal(index) {
 
 // Keep old function name for backward compatibility
 function showTipModal(item) {
-    // Find item index
-    const index = currentRenderedItems.findIndex(i => i.id === item.id);
-    if (index >= 0) {
-        showItemModal(index);
+    // Directly show the item modal without needing to find it in currentRenderedItems
+    if (item) {
+        showItemModalDirect(item);
     }
 }
 
@@ -926,6 +934,9 @@ function renderAllLinks(filterCategory = null) {
         });
     });
     
+    // Store globally for onclick handlers
+    window._currentAllLinks = allLinks;
+    
     // Generate table
     if (allLinks.length > 0) {
         const showCategory = !filterCategory; // Hide category column if filtering by single category
@@ -933,16 +944,16 @@ function renderAllLinks(filterCategory = null) {
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead class="bg-gray-50 dark:bg-gray-900">
                     <tr>
-                        ${showCategory ? `<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                        ${showCategory ? `<th class="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                             ${currentLang === 'fi' ? 'Kategoria' : 'Category'}
                         </th>` : ''}
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                        <th class="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                             ${currentLang === 'fi' ? 'Kohde' : 'Item'}
                         </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                             ${currentLang === 'fi' ? 'Nimi' : 'Name'}
                         </th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                        <th class="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                             ${currentLang === 'fi' ? 'Kuvaus' : 'Description'}
                         </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
@@ -952,11 +963,11 @@ function renderAllLinks(filterCategory = null) {
                 </thead>
                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     ${allLinks.map((link, index) => `
-                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" data-link-index="${index}">
-                            ${showCategory ? `<td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">${link.category}</td>` : ''}
-                            <td class="px-4 py-3 text-sm text-gray-900 dark:text-white">${link.itemTitle}</td>
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" onclick="window.openAllLinksItem(${index})">
+                            ${showCategory ? `<td class="hidden md:table-cell px-4 py-3 text-sm text-gray-600 dark:text-gray-400">${link.category}</td>` : ''}
+                            <td class="hidden md:table-cell px-4 py-3 text-sm text-gray-900 dark:text-white">${link.itemTitle}</td>
                             <td class="px-4 py-3 text-sm text-gray-900 dark:text-white break-words">${link.name}</td>
-                            <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 break-words">${link.description}</td>
+                            <td class="hidden md:table-cell px-4 py-3 text-sm text-gray-600 dark:text-gray-400 break-words">${link.description}</td>
                             <td class="px-4 py-3 text-sm">
                                 <a href="${link.url}" target="_blank" class="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline" onclick="event.stopPropagation()">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -970,23 +981,6 @@ function renderAllLinks(filterCategory = null) {
                 </tbody>
             </table>
         `;
-        
-        // Add click handlers to rows - use setTimeout to ensure DOM is ready
-        setTimeout(() => {
-            content.querySelectorAll('tr[data-link-index]').forEach((row) => {
-                const index = parseInt(row.getAttribute('data-link-index'));
-                const link = allLinks[index];
-                if (link && link.item) {
-                    // Store item reference on the element
-                    row._itemData = link.item;
-                    row.addEventListener('click', function() {
-                        if (this._itemData) {
-                            showTipModal(this._itemData);
-                        }
-                    });
-                }
-            });
-        }, 0);
     } else {
         content.innerHTML = `<p class="text-gray-600 dark:text-gray-400">${currentLang === 'fi' ? 'Ei linkkejä' : 'No links found'}</p>`;
     }
@@ -1036,12 +1030,15 @@ function downloadAllLinksPDF() {
     
     // Collect all links
     const allLinks = [];
+    const seenUrls = new Set(); // Track seen URLs to avoid duplicates
+    
     window.contentData.forEach(item => {
         const mainTagDef = window.mainTagDefinitions[item.mainTag];
         const categoryName = mainTagDef ? mainTagDef[currentLang] : '';
         
         // Add primary URL if exists
-        if (item.url) {
+        if (item.url && !seenUrls.has(item.url)) {
+            seenUrls.add(item.url);
             allLinks.push({
                 category: categoryName,
                 itemTitle: item.title[currentLang],
@@ -1058,13 +1055,16 @@ function downloadAllLinksPDF() {
         if (currentLang === 'en' && item.linksEN) additionalLinks = [...additionalLinks, ...item.linksEN];
         
         additionalLinks.forEach(link => {
-            allLinks.push({
-                category: categoryName,
-                itemTitle: item.title[currentLang],
-                name: link.name || item.title[currentLang],
-                description: link.description || '',
-                url: link.url
-            });
+            if (!seenUrls.has(link.url)) {
+                seenUrls.add(link.url);
+                allLinks.push({
+                    category: categoryName,
+                    itemTitle: item.title[currentLang],
+                    name: link.name || item.title[currentLang],
+                    description: link.description || '',
+                    url: link.url
+                });
+            }
         });
     });
     
@@ -1313,33 +1313,15 @@ function downloadItemPDF(index) {
     doc.save(`${fileName}.pdf`);
 }
 
+// Download PDF for current modal item
+function downloadCurrentItemPDF() {
+    if (window._currentModalItem) {
+        downloadItemPDF(window._currentModalItem);
+    }
+}
+
 // Filter by tag from modal
-// Download PDF for a single item
-function downloadItemPDF(index) {
-    const item = currentRenderedItems[index];
-    if (!item || !item.downloadablePDF) return;
-    
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
-    const title = item.title[currentLang];
-    const mainTagDef = window.mainTagDefinitions[item.mainTag];
-    const categoryName = mainTagDef ? mainTagDef[currentLang] : '';
-    
-    let y = 20;
-    const pageHeight = 280;
-    const leftMargin = 20;
-    const rightMargin = 190;
-    
-    // Title
-    doc.setFontSize(20);
-    doc.setFont(undefined, 'bold');
-    const titleLines = doc.splitTextToSize(title, rightMargin - leftMargin);
-    titleLines.forEach(line => {
-        y = checkPageBreak(doc, y, 15, pageHeight);
-        doc.text(line, leftMargin, y);
-        y += 8;
-    });
+function filterByTagFromModal(tag) {
     y += 5;
     
     // Category
@@ -2667,6 +2649,16 @@ function downloadCategoryBookmarks() {
     URL.revokeObjectURL(url);
 }
 
+// Helper function to open item from All Links table
+window.openAllLinksItem = function(index) {
+    if (window._currentAllLinks && window._currentAllLinks[index]) {
+        const link = window._currentAllLinks[index];
+        if (link.item) {
+            showTipModal(link.item);
+        }
+    }
+};
+
 // Expose functions globally for inline onclick handlers
 window.showAllLinksModal = showAllLinksModal;
 window.showExportModal = showExportModal;
@@ -2683,3 +2675,4 @@ window.closeAllLinksModal = closeAllLinksModal;
 window.toggleAllLinksFilter = toggleAllLinksFilter;
 window.renderAllLinks = renderAllLinks;
 window.showTipModal = showTipModal;
+window.downloadCurrentItemPDF = downloadCurrentItemPDF;
