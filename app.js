@@ -2647,3 +2647,20 @@ function downloadCategoryBookmarks() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
+
+// Expose functions globally for inline onclick handlers
+window.showAllLinksModal = showAllLinksModal;
+window.showExportModal = showExportModal;
+window.closeExportModal = closeExportModal;
+window.closeTipModal = closeTipModal;
+window.confirmBookmarkDownload = confirmBookmarkDownload;
+window.confirmPdfDownload = confirmPdfDownload;
+window.confirmZipDownload = confirmZipDownload;
+window.toggleSortMenu = toggleSortMenu;
+window.changeSortMode = changeSortMode;
+window.toggleTagFilters = toggleTagFilters;
+window.downloadAllLinksPDF = downloadAllLinksPDF;
+window.closeAllLinksModal = closeAllLinksModal;
+window.toggleAllLinksFilter = toggleAllLinksFilter;
+window.renderAllLinks = renderAllLinks;
+window.showTipModal = showTipModal;
