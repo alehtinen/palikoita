@@ -1055,7 +1055,7 @@ Last Checked: 27.01.2026
   URL: https://pirha.cloudnc.fi/
   Description: Pirkanmaan hyvinvointialueen päätöstietokanta
 
-  #### Links: Yhteystiedot | Contacts
+#### Links: Yhteystiedot | Contacts
 - Name: Tampereen kaupungin päätökset
   URL: https://tampere.cloudnc.fi/
   Description: Tampereen kaupungin päätöstietokanta
