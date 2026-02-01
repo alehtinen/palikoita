@@ -133,8 +133,12 @@
             if (!item || !item.contentOrder) return;
             item.contentOrder.forEach(orderItem => {
                 if (orderItem.type === 'body') {
-                    const bp = (item.bodyParts||[]).find(b => b.index === orderItem.index && b.lang === currentLang) || (item.bodyParts||[]).find(b => b.index === orderItem.index);
-                    const title = bp && bp.title ? bp.title : (currentLang === 'fi' ? 'Lisätieto' : 'Section');
+                    const bp = (item.bodyParts||[]).find(b => b.index === orderItem.index);
+                    if (!bp) return; // nothing to show
+                    // If there are body parts available in the current language, only include those
+                    const hasLangParts = (item.bodyParts||[]).some(b => b.lang === currentLang);
+                    if (hasLangParts && bp.lang !== currentLang) return; // skip other-language parts
+                    const title = bp && bp.title ? (typeof bp.title === 'string' ? bp.title : (bp.title[currentLang] || bp.title.fi || bp.title.en || '')) : (currentLang === 'fi' ? 'Lisätieto' : 'Section');
                     const id = `sec-${slug}-body-${bp ? bp.index : orderItem.index}`;
                     const a = document.createElement('a');
                     a.href = `#${id}`;
