@@ -935,6 +935,7 @@ URL: https://piki.finna.fi
 ### Museot ja näyttelyt Tampereella | Museums and Exhibitions in Tampere
 Type: link
 Main Tag: tampere
+ID: museot
 Tags: tampere, kulttuuri, resurssit
 Description FI: Tampereen museot ja näyttelytilat. Taidetta, historiaa ja kulttuuria.
 Description EN: Tampere museums and exhibition spaces. Art, history and culture.
@@ -1014,22 +1015,52 @@ Last Checked: 27.01.2026
   URL: https://www.kulttuuriakaikille.fi/
   Description: Kulttuuripalveluja kaikille
 
+#### Lähteet: Lähteet | Sources
+- Name: TE-palveluiden käsikirja | TE-Services Handbook
+  URL: https://www.te-palvelut.fi/handbook
+  Author: TE-palvelut
+  Date: 2025
+  Retrieved: 27.01.2026
+  Pages: pp. 12-15
+
+- Name: Työllisyyslaki
+  Author: Eduskunta
+  Date: 2024
+  Pages: Luku 3, §12
+
 ### Säädökset ja lait | Regulations and Laws
 Type: link
 Main Tag: turva
+ID: lait
 Tags: julkiset-palvelut, resurssit, tuki
 Description FI: Keskeiset sosiaali- ja työllisyyspalveluihin liittyvät lait sekä alueen päätöstietokannat
 Description EN: Key laws related to social and employment services and regional decision databases
+PDF: true
+Added: 27.01.2026
+Last Checked: 27.01.2026
 Body FI: Tältä sivulta löydät keskeisimmät nuorten sosiaali- ja työllisyyspalveluihin liittyvät lait. Lakitekstit ovat Finlex-palvelussa, joka on valtion ylläpitämä oikeus- ja viranomaistiedon palvelu.
 
 Lisäksi löydät linkit Tampereen kaupungin ja Pirkanmaan hyvinvointialueen päätöstietokantoihin, joista voit seurata alueellisia päätöksiä.
+
+#### dklsadföa
+
+fdajlkfjadsö
+
+#### fakdsjf
+
+fklasödjföaskl
 
 Body EN: This page contains the most important laws related to youth social and employment services. The legal texts are in the Finlex service, which is a government-maintained service for legal and official information.
 
 You will also find links to the decision databases of the City of Tampere and the Pirkanmaa Wellbeing Services County, where you can follow regional decisions.
 
-Added: 27.01.2026
-Last Checked: 27.01.2026
+#### dklsadföa
+
+fdajlkfjadsö
+
+#### fakdsjf
+
+fklasödjföaskl
 
 #### Links: Lait | Laws
 
@@ -1045,6 +1076,18 @@ Last Checked: 27.01.2026
   URL: https://www.finlex.fi/fi/laki/ajantasa/2006/20060072
   Description: Nuorten kasvu- ja elinolosuhteiden parantamista koskeva laki
 
+#### BBreak:
+
+#### Body EN: #### fjadlökjf fjadklsjf
+
+##### fdksajflkjas
+jlkjökj
+
+#### Body FI: fjkadlf Cordon bleu cheese | red
+
+##### fdalkfjöakldsfj
+jlkjkölj
+
 #### Links: Päätökset | Decisions
 
 - Name: Tampereen kaupungin päätökset
@@ -1054,6 +1097,30 @@ Last Checked: 27.01.2026
 - Name: Pirkanmaan hyvinvointialueen päätökset
   URL: https://pirha.cloudnc.fi/
   Description: Pirkanmaan hyvinvointialueen päätöstietokanta
+
+#### BBreak: 
+
+#### Body EN: fuck it | yellow
+fjadlökjf fjadklsjf
+
+jlkjökj
+
+##### lmao
+fdafa
+
+##### fucvk this shits
+fdafads
+
+#### Body FI: fjkadlf Cordon bleu cheese
+
+jlkjkölj
+
+##### lmao
+fdafa
+
+##### fucvk this shits
+fdafads
+
 
 #### Links: Yhteystiedot | Contacts
 - Name: Tampereen kaupungin päätökset

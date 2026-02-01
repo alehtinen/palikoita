@@ -8,7 +8,8 @@ async function loadContentFromMarkdown() {
         
         return parseMarkdownContent(markdown);
     } catch (error) {
-        console.error('Error loading content:', error);
+        // Only log when debug helper is present to avoid noisy console output in normal runs
+        if (typeof window !== 'undefined' && window.DEBUG_LOG) window.DEBUG_LOG('Error loading content', error);
         return { content: [], mainTagDefinitions: {}, tagDefinitions: {} };
     }
 }
@@ -27,15 +28,17 @@ function parseMarkdownContent(markdown) {
     let isInLinkSection = false; // Track if we're in a #### Links: section
     let currentLinkSection = null; // Current link section being built (with title and links)
     let currentLinkItem = null; // Current link item being built
+    let contentOrder = []; // Track order of body sections and link sections
+    let bodyCounter = 0; // Counter for multiple body sections
     
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const trimmedLine = line.trim();
         
         // Check if this is a new field (starts with a known field name)
-        // Note: Use '### ' to match only level-3 headers, not level-4 (####)
+        // Note: Use '### ' to match only level-3 headers, not level-4/5/6
         const isNewField = trimmedLine.startsWith('### ') || 
-                          trimmedLine.startsWith('#### Links:') || // Stop body reading when link section starts
+                          trimmedLine.match(/^#{4,6} (Links:|Lähteet:|Body FI:|Body EN:)/) || // Stop body reading when link/sources/body section starts
                           trimmedLine.startsWith('URL:') ||
                           trimmedLine.startsWith('Type:') ||
                           trimmedLine.startsWith('Main Tag:') ||
@@ -52,16 +55,37 @@ function parseMarkdownContent(markdown) {
                           trimmedLine.startsWith('Added:') ||
                           trimmedLine.startsWith('Updated:');
         
-        // If we're reading a body field and encounter a new field or empty line followed by field, end body reading
-        if (currentBodyField && isNewField) {
+
+
+        // If we're reading a body field and encounter a new field (including a new body section of any language), end body reading
+        if (currentBodyField && (isNewField || trimmedLine.match(/^#{4,6} Body (FI|EN)(\[\d+\])?:/))) {
             currentBodyField = null;
         }
-        
-        // Continue reading body content
-        if (currentBodyField && !isNewField) {
-            if (!currentItem.body) currentItem.body = { fi: '', en: '' };
-            if (currentItem.body[currentBodyField]) {
-                currentItem.body[currentBodyField] += '\n' + line;
+
+        // Always reset currentBodyField when a new body section header is found
+        if (trimmedLine.match(/^#{4,6} Body (FI|EN)(\[\d+\])?:/)) {
+            currentBodyField = null;
+        }
+
+        // Continue reading body content (only for the most recent body part of the same language, and only if not a new field or new body section)
+        if (currentBodyField && !isNewField && !trimmedLine.match(/^#{4,6} Body (FI|EN):/)) {
+            if (!currentItem.bodyParts) currentItem.bodyParts = [];
+            const currentBodyPart = currentItem.bodyParts[currentItem.bodyParts.length - 1];
+            if (currentBodyPart && currentBodyPart.lang === currentBodyField) {
+                if (trimmedLine === 'BBreak:') {
+                    // Start a new body part with the same language
+                    currentBodyPart.content = currentBodyPart.content.trim();
+                    const newBodyPart = {
+                        lang: currentBodyField,
+                        content: '',
+                        order: currentItem.contentOrder.length,
+                        index: bodyCounter++
+                    };
+                    currentItem.bodyParts.push(newBodyPart);
+                    currentItem.contentOrder.push({ type: 'body', index: newBodyPart.index });
+                } else {
+                    currentBodyPart.content += '\n' + line;
+                }
             }
             continue;
         }
@@ -148,10 +172,13 @@ function parseMarkdownContent(markdown) {
                 currentLinkSection.links.push(currentLinkItem);
                 currentLinkItem = null;
             }
-            // Save the last link section if exists
-            if (currentLinkSection) {
+            // Save the last link section if exists and add to contentOrder
+            if (currentLinkSection && currentItem) {
                 if (!currentItem.linkSections) currentItem.linkSections = [];
+                if (!currentItem.contentOrder) currentItem.contentOrder = [];
+                currentLinkSection.order = currentItem.contentOrder.length;
                 currentItem.linkSections.push(currentLinkSection);
+                currentItem.contentOrder.push({ type: 'links', index: currentItem.linkSections.length - 1 });
                 currentLinkSection = null;
             }
             isInLinkSection = false;
@@ -162,6 +189,7 @@ function parseMarkdownContent(markdown) {
             }
             
             currentBodyField = null; // Reset body field when starting new item
+            bodyCounter = 0; // Reset body counter
             
             // Start new item
             // Format: ### FinnishTitle | EnglishTitle
@@ -182,23 +210,27 @@ function parseMarkdownContent(markdown) {
         
         // Parse item properties
         if (currentItem) {
-            // Check for new YAML-style link sections or sources sections
-            if (trimmedLine.startsWith('#### Links:') || trimmedLine.startsWith('#### Lähteet:')) {
+            // Check for new YAML-style link sections or sources sections (supports ####, #####, ######)
+            const linkHeaderMatch = trimmedLine.match(/^(#{4,6}) (Links:|Lähteet:)(.*)$/);
+            if (linkHeaderMatch) {
                 // Save previous link item to previous section
                 if (currentLinkItem && currentLinkSection) {
                     currentLinkSection.links.push(currentLinkItem);
                     currentLinkItem = null;
                 }
-                // Save previous link section if exists
+                // Save previous link section if exists and record its position
                 if (currentLinkSection) {
                     if (!currentItem.linkSections) currentItem.linkSections = [];
+                    if (!currentItem.contentOrder) currentItem.contentOrder = [];
+                    currentLinkSection.order = currentItem.contentOrder.length;
                     currentItem.linkSections.push(currentLinkSection);
+                    currentItem.contentOrder.push({ type: 'links', index: currentItem.linkSections.length - 1 });
                 }
                 // Determine section type and title
-                const isSources = trimmedLine.startsWith('#### Lähteet:');
-                const titlePart = isSources ? 
-                    trimmedLine.substring(13).trim() : // After '#### Lähteet:'
-                    trimmedLine.substring(12).trim(); // After '#### Links:'
+                const headerLevel = linkHeaderMatch[1].length; // Number of # symbols
+                const sectionType = linkHeaderMatch[2]; // 'Links:' or 'Lähteet:'
+                const isSources = sectionType === 'Lähteet:';
+                const titlePart = linkHeaderMatch[3].trim();
                 const titleParts = titlePart.split('|');
                 // Remove emojis from titles
                 const removeEmojis = (str) => str.replace(/[\u{1F000}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{E0020}-\u{E007F}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{2300}-\u{23FF}\u{2B50}\u{2B55}\u{231A}\u{231B}\u{2328}\u{23CF}\u{23E9}-\u{23F3}\u{23F8}-\u{23FA}\u{24C2}\u{25AA}\u{25AB}\u{25B6}\u{25C0}\u{25FB}-\u{25FE}\u{2600}-\u{2604}\u{260E}\u{2611}\u{2614}\u{2615}\u{2618}\u{261D}\u{2620}\u{2622}\u{2623}\u{2626}\u{262A}\u{262E}\u{262F}\u{2638}-\u{263A}\u{2640}\u{2642}\u{2648}-\u{2653}\u{2660}\u{2663}\u{2665}\u{2666}\u{2668}\u{267B}\u{267E}\u{267F}\u{2692}-\u{2697}\u{2699}\u{269B}\u{269C}\u{26A0}\u{26A1}\u{26AA}\u{26AB}\u{26B0}\u{26B1}\u{26BD}\u{26BE}\u{26C4}\u{26C5}\u{26C8}\u{26CE}\u{26CF}\u{26D1}\u{26D3}\u{26D4}\u{26E9}\u{26EA}\u{26F0}-\u{26F5}\u{26F7}-\u{26FA}\u{26FD}\u{2702}\u{2705}\u{2708}-\u{270D}\u{270F}\u{2712}\u{2714}\u{2716}\u{271D}\u{2721}\u{2728}\u{2733}\u{2734}\u{2744}\u{2747}\u{274C}\u{274E}\u{2753}-\u{2755}\u{2757}\u{2763}\u{2764}\u{2795}-\u{2797}\u{27A1}\u{27B0}\u{27BF}\u{2934}\u{2935}\u{2B05}-\u{2B07}\u{2B1B}\u{2B1C}\u{2B50}\u{2B55}\u{3030}\u{303D}\u{3297}\u{3299}\u{1F004}\u{1F0CF}\u{1F170}\u{1F171}\u{1F17E}\u{1F17F}\u{1F18E}\u{1F191}-\u{1F19A}\u{1F1E6}-\u{1F1FF}\u{1F201}\u{1F202}\u{1F21A}\u{1F22F}\u{1F232}-\u{1F23A}\u{1F250}\u{1F251}\u{1F300}-\u{1F321}\u{1F324}-\u{1F393}\u{1F396}\u{1F397}\u{1F399}-\u{1F39B}\u{1F39E}-\u{1F3F0}\u{1F3F3}-\u{1F3F5}\u{1F3F7}-\u{1F4FD}\u{1F4FF}-\u{1F53D}\u{1F549}-\u{1F54E}\u{1F550}-\u{1F567}\u{1F56F}\u{1F570}\u{1F573}-\u{1F57A}\u{1F587}\u{1F58A}-\u{1F58D}\u{1F590}\u{1F595}\u{1F596}\u{1F5A4}\u{1F5A5}\u{1F5A8}\u{1F5B1}\u{1F5B2}\u{1F5BC}\u{1F5C2}-\u{1F5C4}\u{1F5D1}-\u{1F5D3}\u{1F5DC}-\u{1F5DE}\u{1F5E1}\u{1F5E3}\u{1F5E8}\u{1F5EF}\u{1F5F3}\u{1F5FA}-\u{1F64F}\u{1F680}-\u{1F6C5}\u{1F6CB}-\u{1F6D2}\u{1F6E0}-\u{1F6E5}\u{1F6E9}\u{1F6EB}\u{1F6EC}\u{1F6F0}\u{1F6F3}-\u{1F6F9}\u{1F910}-\u{1F93A}\u{1F93C}-\u{1F93E}\u{1F940}-\u{1F945}\u{1F947}-\u{1F94C}\u{1F950}-\u{1F96B}\u{1F980}-\u{1F997}\u{1F9C0}\u{1F9D0}-\u{1F9E6}]/gu, '').trim();
@@ -208,24 +240,138 @@ function parseMarkdownContent(markdown) {
                         en: titleParts[1] ? removeEmojis(titleParts[1].trim()) : (isSources ? 'Sources' : 'More info')
                     },
                     links: [],
-                    isSources: isSources // Mark this section as sources
+                    isSources: isSources, // Mark this section as sources
+                    headerLevel: headerLevel // Store header level (4, 5, or 6)
                 };
                 isInLinkSection = true;
                 currentLinkItem = null;
                 continue;
-            } else if (isInLinkSection && (trimmedLine.startsWith('###') || trimmedLine.startsWith('##'))) {
-                // Exit link section when we hit another header
+            } else if (isInLinkSection && (trimmedLine.startsWith('###') || trimmedLine.startsWith('##') || trimmedLine.startsWith('Body'))) {
+                // Exit link section when we hit another header or Body field
                 if (currentLinkItem && currentLinkSection) {
                     currentLinkSection.links.push(currentLinkItem);
                     currentLinkItem = null;
                 }
                 if (currentLinkSection) {
                     if (!currentItem.linkSections) currentItem.linkSections = [];
+                    if (!currentItem.contentOrder) currentItem.contentOrder = [];
+                    currentLinkSection.order = currentItem.contentOrder.length;
                     currentItem.linkSections.push(currentLinkSection);
+                    currentItem.contentOrder.push({ type: 'links', index: currentItem.linkSections.length - 1 });
                     currentLinkSection = null;
                 }
                 isInLinkSection = false;
                 currentLinkItem = null;
+            } else if (trimmedLine.match(/^#{4,6} Body FI:/)) {
+                // Secondary body section with header (auto-indexed, supports color)
+                const match = trimmedLine.match(/^(#{4,6}) Body FI:\s*(.*)$/);
+                const headerLevel = match[1].length;
+                const titleAndContent = match[2].trim();
+                let title = '';
+                let content = '';
+                let headerColor = undefined;
+                if (titleAndContent.includes('|')) {
+                    const parts = titleAndContent.split('|');
+                    title = parts[0].trim();
+                    // If there are 3+ parts, treat last as color, middle as content
+                    if (parts.length > 2) {
+                        content = parts.slice(1, -1).join('|').trim();
+                        headerColor = parts[parts.length - 1].trim();
+                    } else {
+                        content = parts[1].trim();
+                        // If the content looks like a color (single word, no spaces), treat as color
+                        if (/^[a-zA-Z]+$/.test(content)) {
+                            headerColor = content;
+                            content = '';
+                        }
+                    }
+                } else {
+                    title = titleAndContent;
+                    content = '';
+                }
+                const idx = bodyCounter++;
+                const newBodyPart = {
+                    lang: 'fi',
+                    content: content,
+                    title: title,
+                    order: currentItem.contentOrder.length,
+                    index: idx,
+                    headerLevel: headerLevel,
+                    headerColor: headerColor
+                };
+                if (!currentItem.bodyParts) currentItem.bodyParts = [];
+                if (!currentItem.contentOrder) currentItem.contentOrder = [];
+                currentItem.bodyParts.push(newBodyPart);
+                currentItem.contentOrder.push({ type: 'body', index: newBodyPart.index });
+                currentBodyField = 'fi';
+            } else if (trimmedLine.match(/^#{4,6} Body EN:/)) {
+                // Secondary body section with header (auto-indexed, supports color)
+                const match = trimmedLine.match(/^(#{4,6}) Body EN:\s*(.*)$/);
+                const headerLevel = match[1].length;
+                const titleAndContent = match[2].trim();
+                let title = '';
+                let content = '';
+                let headerColor = undefined;
+                if (titleAndContent.includes('|')) {
+                    const parts = titleAndContent.split('|');
+                    title = parts[0].trim();
+                    if (parts.length > 2) {
+                        content = parts.slice(1, -1).join('|').trim();
+                        headerColor = parts[parts.length - 1].trim();
+                    } else {
+                        content = parts[1].trim();
+                        if (/^[a-zA-Z]+$/.test(content)) {
+                            headerColor = content;
+                            content = '';
+                        }
+                    }
+                } else {
+                    title = titleAndContent;
+                    content = '';
+                }
+                const idx = bodyCounter++;
+                const newBodyPart = {
+                    lang: 'en',
+                    content: content,
+                    title: title,
+                    order: currentItem.contentOrder.length,
+                    index: idx,
+                    headerLevel: headerLevel,
+                    headerColor: headerColor
+                };
+                if (!currentItem.bodyParts) currentItem.bodyParts = [];
+                if (!currentItem.contentOrder) currentItem.contentOrder = [];
+                currentItem.bodyParts.push(newBodyPart);
+                currentItem.contentOrder.push({ type: 'body', index: newBodyPart.index });
+                currentBodyField = 'en';
+            } else if (!trimmedLine.match(/^#{4,6}/) && trimmedLine.startsWith('Body FI: ')) {
+                // Only run old-style handler if not a header
+                if (window.DEBUG_LOG) window.DEBUG_LOG('Found old-style Body FI at line, creating fi body part', { line: i, title: currentItem?.title?.fi });
+                if (!currentItem.bodyParts) currentItem.bodyParts = [];
+                if (!currentItem.contentOrder) currentItem.contentOrder = [];
+                const newBodyPart = {
+                    lang: 'fi',
+                    content: trimmedLine.substring(9).trim(),
+                    order: currentItem.contentOrder.length,
+                    index: bodyCounter++
+                };
+                currentItem.bodyParts.push(newBodyPart);
+                currentItem.contentOrder.push({ type: 'body', index: newBodyPart.index });
+                currentBodyField = 'fi'; // Start reading multi-line body
+            } else if (!trimmedLine.match(/^#{4,6}/) && trimmedLine.startsWith('Body EN: ')) {
+                // Only run old-style handler if not a header
+                if (window.DEBUG_LOG) window.DEBUG_LOG('Found old-style Body EN at line, creating en body part', { line: i, title: currentItem?.title?.en });
+                if (!currentItem.bodyParts) currentItem.bodyParts = [];
+                if (!currentItem.contentOrder) currentItem.contentOrder = [];
+                const newBodyPart = {
+                    lang: 'en',
+                    content: trimmedLine.substring(9).trim(),
+                    order: currentItem.contentOrder.length,
+                    index: bodyCounter++
+                };
+                currentItem.bodyParts.push(newBodyPart);
+                currentItem.contentOrder.push({ type: 'body', index: newBodyPart.index });
+                currentBodyField = 'en'; // Start reading multi-line body
             } else if (isInLinkSection) {
                 // Parse YAML-style link items
                 if (trimmedLine.startsWith('- Name:')) {
@@ -262,7 +408,7 @@ function parseMarkdownContent(markdown) {
                         // Contact flag for this specific link item
                         const contactValue = trimmedLine.substring(8).trim().toLowerCase();
                         currentLinkItem.isContact = contactValue === 'true' || contactValue === 'yes';
-                    } else if (trimmedLine.startsWith('Description FI:')) {
+                    } else if (trimmedLine.match(/^#{4,6} Body FI:/)) {
                         if (!currentLinkItem.description) currentLinkItem.description = { fi: '', en: '' };
                         currentLinkItem.description.fi = trimmedLine.substring(15).trim();
                     } else if (trimmedLine.startsWith('Description EN:')) {
@@ -292,7 +438,6 @@ function parseMarkdownContent(markdown) {
                 currentItem.urlName.fi = nameParts[0] ? nameParts[0].trim() : '';
                 currentItem.urlName.en = nameParts[1] ? nameParts[1].trim() : nameParts[0] ? nameParts[0].trim() : '';
             } else if (trimmedLine.startsWith('URL Description: ')) {
-                // URL Description with language support: URL Description: Kuvaus | Description
                 const descPart = trimmedLine.substring(17).trim();
                 const descParts = descPart.split('|');
                 if (!currentItem.urlDescription) currentItem.urlDescription = { fi: '', en: '' };
@@ -307,6 +452,11 @@ function parseMarkdownContent(markdown) {
                 currentItem.isContactUrl = contactValue === 'true' || contactValue === 'yes';
             } else if (trimmedLine.startsWith('Icon: ')) {
                 currentItem.icon = trimmedLine.substring(6).trim();
+            } else if (/^(card|id): /i.test(trimmedLine)) {
+                // Optional explicit ID/Card slug provided by author (use `ID:` preferred). Keep both fields for compatibility.
+                const idVal = trimmedLine.replace(/^(card|id):\s*/i, '').trim();
+                currentItem.id = idVal;
+                currentItem.card = idVal; // backward compatibility
             } else if (trimmedLine.startsWith('Type: ')) {
                 currentItem.type = trimmedLine.substring(6).trim();
             } else if (trimmedLine.startsWith('Main Tag: ')) {
@@ -321,11 +471,6 @@ function parseMarkdownContent(markdown) {
             } else if (trimmedLine.startsWith('Tags: ')) {
                 const tagList = trimmedLine.substring(6).trim();
                 currentItem.tags = tagList.split(',').map(t => t.trim());
-            } else if (trimmedLine.startsWith('Links: ')) {
-                // Old pipe-delimited format (backward compatibility)
-                const linkList = trimmedLine.substring(7).trim();
-                if (!currentItem.links) currentItem.links = [];
-                currentItem.links = parseLinkList(linkList);
             } else if (trimmedLine.startsWith('Links FI: ')) {
                 // Old pipe-delimited format (backward compatibility)
                 const linkList = trimmedLine.substring(10).trim();
@@ -350,12 +495,32 @@ function parseMarkdownContent(markdown) {
             } else if (trimmedLine.startsWith('Description EN: ') || trimmedLine.startsWith('Description (en): ')) {
                 currentItem.description.en = trimmedLine.includes('(en)') ? trimmedLine.substring(18).trim() : trimmedLine.substring(16).trim();
             } else if (trimmedLine.startsWith('Body FI: ')) {
-                if (!currentItem.body) currentItem.body = { fi: '', en: '' };
-                currentItem.body.fi = trimmedLine.substring(9).trim();
+                if (window.DEBUG_LOG) window.DEBUG_LOG('Found Body FI at line, creating fi body part', {line: i, title: currentItem?.title?.fi});
+                // Create new body part
+                if (!currentItem.bodyParts) currentItem.bodyParts = [];
+                if (!currentItem.contentOrder) currentItem.contentOrder = [];
+                const newBodyPart = {
+                    lang: 'fi',
+                    content: trimmedLine.substring(9).trim(),
+                    order: currentItem.contentOrder.length,
+                    index: bodyCounter++
+                };
+                currentItem.bodyParts.push(newBodyPart);
+                currentItem.contentOrder.push({ type: 'body', index: newBodyPart.index });
                 currentBodyField = 'fi'; // Start reading multi-line body
             } else if (trimmedLine.startsWith('Body EN: ')) {
-                if (!currentItem.body) currentItem.body = { fi: '', en: '' };
-                currentItem.body.en = trimmedLine.substring(9).trim();
+                if (window.DEBUG_LOG) window.DEBUG_LOG('Found Body EN at line, creating en body part', {line: i, title: currentItem?.title?.en});
+                // Create new body part
+                if (!currentItem.bodyParts) currentItem.bodyParts = [];
+                if (!currentItem.contentOrder) currentItem.contentOrder = [];
+                const newBodyPart = {
+                    lang: 'en',
+                    content: trimmedLine.substring(9).trim(),
+                    order: currentItem.contentOrder.length,
+                    index: bodyCounter++
+                };
+                currentItem.bodyParts.push(newBodyPart);
+                currentItem.contentOrder.push({ type: 'body', index: newBodyPart.index });
                 currentBodyField = 'en'; // Start reading multi-line body
             }
         }
@@ -365,10 +530,13 @@ function parseMarkdownContent(markdown) {
     if (currentLinkItem && currentLinkSection) {
         currentLinkSection.links.push(currentLinkItem);
     }
-    // Add last link section if exists
+    // Add last link section if exists and add to contentOrder
     if (currentLinkSection && currentItem) {
         if (!currentItem.linkSections) currentItem.linkSections = [];
+        if (!currentItem.contentOrder) currentItem.contentOrder = [];
+        currentLinkSection.order = currentItem.contentOrder.length;
         currentItem.linkSections.push(currentLinkSection);
+        currentItem.contentOrder.push({ type: 'links', index: currentItem.linkSections.length - 1 });
     }
     
     // Add last item
@@ -376,6 +544,21 @@ function parseMarkdownContent(markdown) {
         content.push(currentItem);
     }
     
+    // Debug logging for each content item (no-op unless debug helper is present)
+    content.forEach((item, idx) => {
+        if (window.DEBUG_LOG) {
+            window.DEBUG_LOG('parse item', { idx: idx + 1, title: item.title?.fi || item.title?.en || 'no title' });
+            if (item.bodyParts) {
+                item.bodyParts.forEach((bp, i) => {
+                    window.DEBUG_LOG('parse bodyPart', { idx: idx + 1, partIndex: i, lang: bp.lang, index: bp.index, order: bp.order, headerLevel: bp.headerLevel, title: bp.title, contentPreview: (bp.content||'').slice(0,40) });
+                });
+            }
+            if (item.contentOrder) {
+                window.DEBUG_LOG('parse contentOrder', { idx: idx + 1, contentOrder: item.contentOrder });
+            }
+        }
+    });
+
     return { content, mainTagDefinitions, typeDefinitions, tagDefinitions };
 }
 

@@ -41,7 +41,12 @@ Added: 27.01.2026 (optional)
 Updated: 27.01.2026 (optional)
 Last Checked: 27.01.2026 (optional)
 PDF: true (optional - enables PDF download for this item)
-Body FI: Finnish body content with markdown (optional)
+
+**MULTIPLE BODY SECTIONS SUPPORTED:**
+You can now have multiple Body FI/Body EN sections interspersed with link sections!
+They will be displayed in the order they appear.
+
+Body FI: First Finnish body content with markdown (optional)
 
 **Bold text**
 
@@ -93,11 +98,11 @@ Danger warning
 
 Question text
 
-Body EN: English body content (optional)
+Body EN: First English body content (optional)
 
 Same formatting options as Finnish body.
 
-#### Links: Section Title FI | Section Title EN (optional)
+#### Links: Section Title FI | Section Title EN (flexible header level: ####, #####, or ######)
 - Name: Link Name FI | Link Name EN
   URL: https://example.com (optional if URL FI and URL EN exist)
   URL FI: https://fi.example.com (optional)
@@ -112,12 +117,20 @@ Same formatting options as Finnish body.
   URL: https://another.com
   Description: Another link description
 
-#### Links: Contact Section | Contact Information (optional)
-- Name: Contact Name
-  URL: https://contact.example.com
-  Description: Contact description
+Body FI: Second body section in Finnish (optional - add more text after links!)
 
-#### Lähteet: Lähteet | Sources (optional - for citations and references)
+You can continue with more content here, creating a flowing document structure.
+
+Body EN: Second body section in English (optional)
+
+More content in English.
+
+##### Links: Another Section (notice ##### instead of ####)
+- Name: More Links
+  URL: https://example.com
+  Description: Description
+
+#### Lähteet: Lähteet | Sources (COLLAPSIBLE BY DEFAULT - for citations and references)
 - Name: Source Name FI | Source Name EN
   URL: https://source.example.com (optional)
   Author: Author Name (optional)
@@ -132,7 +145,18 @@ Same formatting options as Finnish body.
   Date: 2025
   Pages: pp. 123-145
   Description: Reference description
+
+###### Links: Contact Section | Contact Information (COLLAPSIBLE BY DEFAULT - notice ######)
+- Name: Contact Name
+  URL: https://contact.example.com
+  Description: Contact description
 ```
+
+**NEW FEATURES:**
+1. **Multiple Body Sections**: Add as many Body FI/Body EN sections as you need
+2. **Flexible Link Header Levels**: Use ####, #####, or ###### for link sections
+3. **Collapsible Sources/Contacts**: Sources (Lähteet) and contact sections are collapsed by default in modals to save space
+4. **Content Order**: Body sections and link sections appear in the exact order you write them
 
 ## Complete Example
 
@@ -258,6 +282,14 @@ Set up email alerts to get notified about new job openings.
 - `Body EN:` - markdown content in English
 - `#### Links:` sections with links
 - `#### Lähteet:` sources/citations section
+- `ID:` - optional short slug/id for this content card (alphanumeric, used for shared links). If omitted, the site generates one from the title.
+
+Examples:
+- `ID: uutissivut` (then link to this card with `index.html?card=uutissivut`)
+
+Notes on slug normalization:
+- Non-ascii letters are normalized. Finnish `ä` and `ö` are mapped to `a` and `o` respectively (e.g. `Harrastus` -> `harrastus`, `Pääkaupunki` -> `paakaupunki`).
+- Use `?card=<slug>` in links to open/scroll-to a card (the site will also attempt to open the card modal automatically). If you're linking to a card inside a category page, you may want to build a URL like `category.html?category=<cat-slug>&card=<card-slug>` to preserve category context.
 
 ### Link Fields (for #### Links: sections)
 - `Name:` - required, bilingual with | separator
@@ -303,6 +335,50 @@ Format:
 
 Content on next line after blank line
 ```
+
+# Debug
+
+The site includes an optional `debug.js` helper you can load to get advanced diagnostics. Use it only in development or on a trusted local server.
+
+How to enable
+- Temporary (one-time): append `?debug=1&persist=0` to the URL (best for single-session debugging).
+- Persisted: append `?debug=1` (this sets a `debug` flag in `localStorage`). Remove with `?debug=0`.
+
+What the panel provides
+- Severity badges for **Errors**, **Warnings**, and **Info** with counts.
+- Quick actions: **PARSER** (run a parser dump), **ALLLINKS** (regenerate & dump All Links), **VALID** (run All Links validator), **LOGS** (open a detailed log viewer), **EXPORT** (download logs), **CLEAR** (wipe logs).
+- The log viewer is filterable by severity and supports click-to-copy for individual messages.
+
+Useful console helpers
+- `PARSER_DUMP()` — downloads `parser_dump.json` with parser rows for inspection.
+- `TIME_PARSE()` — re-parses `content.md` and returns timing + parsed item counts.
+- `ALLLINKS_DUMP()` — regenerates All Links and downloads `all_links.json`.
+- `ALLLINKS_VALIDATE()` — runs validation checks and prints warnings/errors for suspicious entries.
+- `DEBUG_DUMP()` — shows recent logs in the console.
+- `DEBUG_DUMP_TO_FILE({raw:false})` — downloads sanitized logs (default). To request raw logs pass `{raw:true}` but note you must first explicitly set `window.DEBUG_ALLOW_RAW = true` in the console (only do this in a trusted environment).
+
+Compact mode (badge-only)
+- Enable from the panel: click the **Compact** button to collapse into badge-only mode (shows Errors/Warnings/Info counts).
+- Console toggle: `window.DEBUG_COMPACT = 'badge'` to enable, `window.DEBUG_COMPACT = false` to disable.
+- When compact:
+  - The panel body is hidden and only the three severity badges remain visible.
+  - Badges pulse on new entries to draw attention.
+  - Click a badge to expand the panel and open the logs filtered to that severity.
+  - A tiny **Compact** status indicator is shown in the panel to confirm the mode (`Compact: ON` / `Compact: OFF`).
+
+All Links modal improvements
+- Sorting: The All Links modal now supports sorting by **Default** (collected order) or **Alphabetical** (by link name). Use the **Sort** dropdown above the filter checkboxes to switch modes; the list re-renders immediately and the UI matches the main page sorting control.
+- Close behavior: You can now close popups (All Links, Contacts, Tip modal, Downloads & Export modals) by clicking outside the modal content (the overlay) or by pressing **Esc**. This applies to the All Links modal, Contacts modal, and export/download dialogs as well.
+
+Privacy & sensitive data
+
+Privacy & sensitive data
+- By default debug logs are sanitized: full URLs, long tokens, emails and bearer tokens are masked before storage and export.
+- If you intentionally need full raw logs for troubleshooting, set `window.DEBUG_ALLOW_RAW = true` in the console and then call `DEBUG_DUMP_TO_FILE({raw:true})` — only do this on a secure trusted machine.
+
+Examples
+- Open the panel: load `http://localhost:8001/?debug=1&persist=0`, click **LOGS**, then filter for **Error** to inspect failures.
+- Export sanitized logs: `DEBUG_DUMP_TO_FILE()`.
 
 ## Notes
 

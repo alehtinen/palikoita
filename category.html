@@ -542,9 +542,9 @@
             Object.keys(window.mainTagDefinitions).forEach(mainTagId => {
                 const mainTagDef = window.mainTagDefinitions[mainTagId];
                 
-                // Desktop link
+                // Desktop link (slugified in URL)
                 const link = document.createElement('a');
-                link.href = `category.html?category=${mainTagId}`;
+                link.href = `category.html?category=${window.slugify(mainTagId)}`;
                 
                 if (mainTagId === currentMainTag) {
                     link.className = 'px-4 py-2 rounded-lg bg-primary text-white font-medium';
@@ -558,7 +558,7 @@
                 // Mobile link
                 if (mobileNav) {
                     const mobileLink = document.createElement('a');
-                    mobileLink.href = `category.html?category=${mainTagId}`;
+                    mobileLink.href = `category.html?category=${window.slugify(mainTagId)}`;
                     
                     if (mainTagId === currentMainTag) {
                         mobileLink.className = 'block px-4 py-3 bg-primary text-white font-medium';
@@ -572,17 +572,68 @@
             });
         }
         
-        // Initialize the page when content is loaded
+        // If content is already loaded (fast path), initialize immediately to avoid missing the event
+        if (window.mainTagDefinitions && Object.keys(window.mainTagDefinitions).length > 0) {
+// Resolve possible slugified category param to actual mainTagId
+        let resolvedCategory = null;
+        if (categoryId) {
+            if (window.mainTagDefinitions[categoryId]) {
+                resolvedCategory = categoryId;
+            } else {
+                // Build slug map and try to match
+                for (const id of Object.keys(window.mainTagDefinitions || {})) {
+                    if (window.slugify(id) === categoryId) {
+                        resolvedCategory = id;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (resolvedCategory) {
+            currentMainTag = resolvedCategory;
+            const categoryDef = window.mainTagDefinitions[resolvedCategory];
+
+                // Update page title and subtitle
+                document.title = `${categoryDef[currentLang]} - Päivää!`;
+                document.getElementById('categoryTitle').textContent = categoryDef[currentLang];
+                document.getElementById('categorySubtitle').textContent = categoryDef[currentLang];
+            } else {
+                // No valid category, redirect to home
+                window.location.href = 'index.html';
+            }
+
+            initializePage();
+            generateCategoryNav();
+            renderTagFilters();
+            renderContent();
+        }
+
+        // Initialize the page when content is loaded (fallback if not yet loaded)
         window.addEventListener('contentLoaded', (e) => {
             window.contentData = e.detail.content;
             window.mainTagDefinitions = e.detail.mainTagDefinitions;
             window.tagDefinitions = e.detail.tagDefinitions;
             
-            // Set current main tag from URL
-            if (categoryId && window.mainTagDefinitions[categoryId]) {
-                currentMainTag = categoryId;
-                const categoryDef = window.mainTagDefinitions[categoryId];
-                
+            // Resolve possible slugified category param to actual mainTagId (handles ä/ö/etc)
+            let resolvedCategory = null;
+            if (categoryId) {
+                if (window.mainTagDefinitions[categoryId]) {
+                    resolvedCategory = categoryId;
+                } else {
+                    for (const id of Object.keys(window.mainTagDefinitions || {})) {
+                        if (window.slugify(id) === categoryId) {
+                            resolvedCategory = id;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (resolvedCategory) {
+                currentMainTag = resolvedCategory;
+                const categoryDef = window.mainTagDefinitions[resolvedCategory];
+
                 // Update page title and subtitle
                 document.title = `${categoryDef[currentLang]} - Päivää!`;
                 document.getElementById('categoryTitle').textContent = categoryDef[currentLang];

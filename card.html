@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Päivää! - Card</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#8b5cf6',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 min-h-screen">
+    <header class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <button onclick="goBack()" id="cardBackBtn" class="p-2 sm:px-3 sm:py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium text-xs sm:text-sm" title="Back">←</button>
+                <h1 id="cardHeaderTitle" class="text-lg font-bold text-gray-900 dark:text-white">Card</h1>
+            </div>
+            <div id="cardHeaderActions" class="flex items-center gap-2">
+                <button id="langToggle" title="Toggle language" class="p-2 sm:px-3 sm:py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium text-xs sm:text-sm">EN</button>
+                <button id="themeToggle" title="Toggle theme" class="p-2 sm:px-3 sm:py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium text-xs sm:text-sm inline-flex items-center justify-center">
+                    <svg id="sunIcon" class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path></svg>
+                    <svg id="moonIcon" class="w-5 h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                </button>
+                <button id="outlineToggleBtn" class="p-2 sm:px-3 sm:py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium text-xs sm:text-sm md:hidden order-last inline-flex items-center justify-center" onclick="toggleMobileOutline()" title="Outline">☰</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
+        <aside id="cardOutline" class="hidden md:block md:sticky md:top-20 md:self-start bg-white dark:bg-gray-800 rounded-lg p-4 shadow h-fit font-sans">
+            <h3 class="font-semibold mb-3 text-gray-800 dark:text-gray-100">Outline</h3>
+            <nav id="outlineNav" class="text-sm space-y-1 text-gray-700 dark:text-gray-200 font-sans"></nav>
+        </aside>
+        <section id="cardFullContent">
+            <div id="cardMain" class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow">Ladataan kohdetta…</div>
+        </section>
+    </main>
+
+    <!-- Mobile Outline Panel -->
+    <div id="mobileOutlinePanel" class="fixed inset-0 z-50 hidden md:hidden">
+      <div class="absolute inset-0 bg-black bg-opacity-50" onclick="closeMobileOutline()"></div>
+      <div class="absolute right-0 top-0 bottom-0 w-3/4 max-w-xs bg-white dark:bg-gray-800 p-4 overflow-auto shadow-lg transform transition-transform duration-200">
+         <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-lg text-gray-900 dark:text-white">Outline</h3>
+            <button onclick="closeMobileOutline()" class="p-2 text-gray-600 dark:text-gray-300">✕</button>
+         </div>
+         <nav id="mobileOutlineList" class="space-y-1 text-sm text-gray-700 dark:text-gray-200"></nav>
+      </div>
+    </div>
+
+    <script src="loader.js"></script>
+    <script src="app.js"></script>
+    <script>
+        function getCardSlugFromLocation() {
+            const params = new URLSearchParams(window.location.search);
+            let card = params.get('card');
+            if (!card && window.location.hash) {
+                // Hash might contain extra query-like params (e.g. '#card=lait?debug=1'), strip them
+                const h = window.location.hash.replace(/^#/, '');
+                let raw = '';
+                if (h.startsWith('card=')) raw = h.substring(5);
+                else if (h.startsWith('card-')) raw = h.substring(5);
+                else raw = h;
+                // Remove any trailing query or hash-like suffix
+                raw = raw.split(/[?&]/)[0];
+                try { card = decodeURIComponent(raw); } catch (e) { card = raw; }
+            }
+            return card;
+        }
+
+        function goBack() {
+            // Prefer explicit 'from' param produced by openFullPage, fall back to referrer/history or index
+            const params = new URLSearchParams(window.location.search);
+            const from = params.get('from');
+            const cat = params.get('category');
+            let slug = getCardSlugFromLocation();
+            if (slug) slug = slug.split(/[?&]/)[0];
+
+            if (from === 'category') {
+                const target = 'category.html' + (cat ? ('?category=' + encodeURIComponent(cat)) : '');
+                // If we have a card slug, include it so the category view can highlight the item
+                window.location.href = target + (slug ? ('&card=' + encodeURIComponent(slug)) : '');
+                return;
+            }
+            if (from === 'index') {
+                window.location.href = 'index.html' + (slug ? ('#card=' + encodeURIComponent(slug)) : '');
+                return;
+            }
+
+            // If the referrer is from our site, go back to it
+            try {
+                const ref = document.referrer || '';
+                const sameOrigin = ref && ref.startsWith(window.location.origin);
+                if (sameOrigin && (ref.includes('category.html') || ref.includes('index.html') || ref.includes(window.location.hostname))) {
+                    window.location.href = ref;
+                    return;
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            // If the referrer is empty or from another site, redirect to index (do NOT re-open the card)
+            if (!document.referrer || !document.referrer.startsWith(window.location.origin)) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // As a last fallback, use history.back()
+            if (window.history && window.history.length > 1) {
+                window.history.back();
+                return;
+            }
+
+            // Final fallback to index
+            window.location.href = 'index.html' + (slug ? ('#card=' + encodeURIComponent(slug)) : '');
+        }
+
+        function buildOutline(item, slug) {
+            const nav = document.getElementById('outlineNav');
+            nav.innerHTML = '';
+            if (!item || !item.contentOrder) return;
+            item.contentOrder.forEach(orderItem => {
+                if (orderItem.type === 'body') {
+                    const bp = (item.bodyParts||[]).find(b => b.index === orderItem.index && b.lang === currentLang) || (item.bodyParts||[]).find(b => b.index === orderItem.index);
+                    const title = bp && bp.title ? bp.title : (currentLang === 'fi' ? 'Lisätieto' : 'Section');
+                    const id = `sec-${slug}-body-${bp ? bp.index : orderItem.index}`;
+                    const a = document.createElement('a');
+                    a.href = `#${id}`;
+                    // Use header level to adjust indentation, size, weight and color
+                    const level = bp && bp.headerLevel ? bp.headerLevel : 4;
+                    const indentClass = level >= 6 ? 'pl-6' : (level === 5 ? 'pl-4' : 'pl-3');
+                    const sizeClass = level === 4 ? 'text-base' : (level === 5 ? 'text-sm' : 'text-xs');
+                    const weightAndColorClass = level === 4 ? 'font-semibold text-gray-900 dark:text-white' : (level === 5 ? 'font-medium text-gray-800 dark:text-gray-200' : 'font-normal text-gray-600 dark:text-gray-400');
+                    a.className = `flex items-center justify-between ${indentClass} py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 bg-transparent ${sizeClass} ${weightAndColorClass}`;
+                    a.innerHTML = `<span class="truncate">${title}</span><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
+                    // Intercept clicks so we don't stomp card hash; smooth scroll and preserve card hash
+                    a.addEventListener('click', function(e){
+                        e.preventDefault();
+                        const targetId = this.getAttribute('href').replace(/^#/, '');
+                        const targetEl = document.getElementById(targetId);
+                        if (targetEl) targetEl.scrollIntoView({behavior: 'smooth', block: 'start'});
+                        try { const base = window.location.pathname + (window.location.search ? window.location.search : ''); history.replaceState(null, '', base + '#card=' + slug); } catch (err) { /* ignore */ }
+                    });
+                    nav.appendChild(a);
+                } else if (orderItem.type === 'links') {
+                    const section = (item.linkSections||[])[orderItem.index];
+                    if (section) {
+                        const title = section.title[currentLang] || section.title.fi || section.title.en || (currentLang === 'fi' ? 'Lisätiedot' : 'Links');
+                        const id = `sec-${slug}-links-${orderItem.index}`;
+                        const a = document.createElement('a');
+                        a.href = `#${id}`;
+                        const level = section.headerLevel || 4;
+                        const indentClass = level >= 6 ? 'pl-6' : (level === 5 ? 'pl-4' : 'pl-3');
+                        const sizeClass = level === 4 ? 'text-base' : (level === 5 ? 'text-sm' : 'text-xs');
+                        const weightAndColorClass = level === 4 ? 'font-semibold text-gray-900 dark:text-white' : (level === 5 ? 'font-medium text-gray-800 dark:text-gray-200' : 'font-normal text-gray-600 dark:text-gray-400');
+                        a.className = `flex items-center justify-between ${indentClass} py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 bg-transparent ${sizeClass} ${weightAndColorClass}`;
+                        a.innerHTML = `<span class="truncate">${title}</span><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
+                        a.addEventListener('click', function(e){
+                            e.preventDefault();
+                            const targetId = this.getAttribute('href').replace(/^#/, '');
+                            const targetEl = document.getElementById(targetId);
+                            if (targetEl) targetEl.scrollIntoView({behavior: 'smooth', block: 'start'});
+                            try { const base = window.location.pathname + (window.location.search ? window.location.search : ''); history.replaceState(null, '', base + '#card=' + slug); } catch (err) { }
+                        });
+                        nav.appendChild(a);
+                    }
+                }
+            });
+
+            // Also populate mobile outline if present and attach handlers to close panel on selection
+            const mobileList = document.getElementById('mobileOutlineList');
+            if (mobileList) {
+                mobileList.innerHTML = nav.innerHTML;
+                mobileList.querySelectorAll('a').forEach(a => {
+                    a.addEventListener('click', function(e){
+                        e.preventDefault();
+                        const targetId = this.getAttribute('href').replace(/^#/, '');
+                        const targetEl = document.getElementById(targetId);
+                        if (targetEl) targetEl.scrollIntoView({behavior: 'smooth', block: 'start'});
+                        try { const base = window.location.pathname + (window.location.search ? window.location.search : ''); history.replaceState(null, '', base + '#card=' + slug); } catch (err) { }
+                    });
+                });
+            }
+        }
+
+        function toggleMobileOutline() {
+            console.log('[card] toggleMobileOutline');
+            const panel = document.getElementById('mobileOutlinePanel');
+            if (!panel) return;
+            panel.classList.toggle('hidden');
+            // ensure mobile copy is in sync
+            const mobileList = document.getElementById('mobileOutlineList');
+            const nav = document.getElementById('outlineNav');
+            if (mobileList && nav) {
+                mobileList.innerHTML = nav.innerHTML;
+                mobileList.querySelectorAll('a').forEach(a => a.addEventListener('click', function(e){
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href').replace(/^#/, '');
+                    const targetEl = document.getElementById(targetId);
+                    if (targetEl) targetEl.scrollIntoView({behavior: 'smooth', block: 'start'});
+                    try { const base = window.location.pathname + (window.location.search ? window.location.search : ''); history.replaceState(null, '', base + '#card=' + slug); } catch (err) { }
+
+                }));
+            }
+        }
+
+        function closeMobileOutline() {
+            const panel = document.getElementById('mobileOutlinePanel');
+            if (panel) panel.classList.add('hidden');
+        }
+
+        function showFullCard() {
+            // Prevent concurrent or re-entrant renders which were causing repeated handler attachments
+            if (window._cardRendering) {
+                console.log('[card] showFullCard skipped due to re-entrant call');
+                return;
+            }
+            window._cardRendering = true;
+            console.log('[card] showFullCard start');
+            window._cardShowFullCardRuns = (window._cardShowFullCardRuns || 0) + 1;
+            console.log('[card] showFullCard run #', window._cardShowFullCardRuns);
+            const slug = getCardSlugFromLocation();
+            if (!slug) {
+                document.getElementById('cardMain').innerHTML = '<div class="text-red-500">Kohdetta ei löytynyt</div>';
+                window._cardRendering = false;
+                return;
+            }
+            const run = () => {
+                const item = (window.contentData || []).find(it => window.slugify(it.id || it.card || it.title?.fi || it.title?.en || it.title[currentLang]) === slug);
+                if (!item) {
+                    document.getElementById('cardMain').innerHTML = '<div class="text-red-500">Kohdetta ei löytynyt</div>';
+                    return;
+                }
+                document.getElementById('cardMain').innerHTML = window.renderFullItem(item);
+                document.getElementById('cardHeaderTitle').textContent = item.title[currentLang] || item.title.fi || item.title.en;
+                // Set current full-page item so header PDF/Copy actions work
+                window._currentFullItem = item;
+
+                // Build a modern outline and add top actions (Copy link / PDF)
+                buildOutline(item, slug);
+
+                // Add header actions (copy link + pdf if available)
+                try {
+                    const actions = document.getElementById('cardHeaderActions');
+                    if (actions) {
+                        const permalink = window.location.origin + window.location.pathname + '#card=' + slug;
+                        let html = '';
+                        // Copy icon button (matches modal style)
+                        html += `<button id="cardCopyPermalinkBtn" onclick="copyCardPermalink('${slug}', this)" class="p-2 rounded text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 mr-2" title="${currentLang === 'fi' ? 'Kopioi kortin linkki' : 'Copy card link'}"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14L21 3"/></svg></button>`;
+                        // PDF button (calls download handler which uses window._currentFullItem)
+                        if (item.downloadablePDF) html += `<button id="cardPdfBtn" onclick="(function(){ downloadCurrentItemPDF(); })()" class="inline-flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded mr-2" title="PDF">PDF</button>`;
+
+                        // remove existing dynamic action buttons to avoid duplicates
+                        actions.querySelectorAll('#cardCopyPermalinkBtn, #cardPdfBtn').forEach(n => n.remove());
+
+                        // Insert before language/theme so PDF sits to the left of the language & theme controls
+                        const refEl = actions.querySelector('#langToggle') || actions.querySelector('#themeToggle') || null;
+                        if (refEl) refEl.insertAdjacentHTML('beforebegin', html);
+                        else actions.insertAdjacentHTML('beforeend', html);
+
+                        // Attach robust event listeners to the inserted header buttons and use visible logs
+                        (function attachCardHeaderHandlers() {
+                            try {
+                                window._cardAttachCounter = (window._cardAttachCounter || 0) + 1;
+                                console.log('[card] attachCardHeaderHandlers run #', window._cardAttachCounter); console.trace();
+                                // Prefer selecting inside the actions container to avoid duplicate-id issues
+                                const container = document.getElementById('cardHeaderActions');
+                                const copyBtn = container ? container.querySelector('#cardCopyPermalinkBtn') : document.getElementById('cardCopyPermalinkBtn');
+                                if (copyBtn) {
+                                    if (copyBtn._cardHandler_click) copyBtn.removeEventListener('click', copyBtn._cardHandler_click);
+                                    copyBtn._cardHandler_click = function(e){ console.debug('[card] copyBtn click'); e.stopPropagation(); copyCardPermalink(slug, copyBtn); };
+                                    copyBtn.addEventListener('click', copyBtn._cardHandler_click);
+                                    console.debug('[card] attached copyBtn handler');
+                                }
+
+                                const pdfBtn = container ? container.querySelector('#cardPdfBtn') : document.getElementById('cardPdfBtn');
+                                if (pdfBtn) {
+                                    if (pdfBtn._cardHandler_click) pdfBtn.removeEventListener('click', pdfBtn._cardHandler_click);
+                                    pdfBtn._cardHandler_click = function(e){ console.debug('[card] pdfBtn click'); e.stopPropagation(); downloadCurrentItemPDF(); };
+                                    pdfBtn.addEventListener('click', pdfBtn._cardHandler_click);
+                                    console.debug('[card] attached pdfBtn handler');
+                                }
+
+                                // Language and Theme toggles are handled globally by initializePage()/setupEventListeners in app.js
+                                // This avoids multiple local attachments and keeps behavior identical to index/category pages.
+
+                                const outlineBtn = container ? container.querySelector('#outlineToggleBtn') : document.getElementById('outlineToggleBtn');
+                                if (outlineBtn) {
+                                    if (outlineBtn._cardHandler_click) outlineBtn.removeEventListener('click', outlineBtn._cardHandler_click);
+                                    outlineBtn._cardHandler_click = function(e){ e.stopPropagation(); toggleMobileOutline(); };
+                                    outlineBtn.addEventListener('click', outlineBtn._cardHandler_click);
+                                }
+
+                                const backBtn = document.getElementById('cardBackBtn');
+                                if (backBtn) {
+                                    if (backBtn._cardHandler_click) backBtn.removeEventListener('click', backBtn._cardHandler_click);
+                                    backBtn._cardHandler_click = function(e){ e.stopPropagation(); goBack(); };
+                                    backBtn.addEventListener('click', backBtn._cardHandler_click);
+                                }
+
+                                // Debug button intentionally removed from this page to avoid UI clutter
+                                // Use ?debug=1 in the URL (search or hash) to auto-load debug.js as on other pages if needed.
+
+                            } catch (err) {
+                                if (window.DEBUG_LOG) window.DEBUG_LOG('attachCardHeaderHandlers failed', err);
+                            }
+                        })();
+                    }
+                } catch (e) {
+                    if (window.DEBUG_LOG) window.DEBUG_LOG('cardHeader actions failed', e);
+                }
+
+                // ensure language/theme toggles reflect state
+                applyLanguage();
+                applyTheme();
+
+                // Ensure global listeners are attached to final DOM (idempotent)
+                try {
+                    if (typeof setupEventListeners === 'function') {
+                        console.debug('[card] calling setupEventListeners after render');
+                        setupEventListeners();
+                    }
+                } catch (err) { console.debug('[card] setupEventListeners failed', err); }
+
+                // Fallback: attach local handlers directly to theme/lang toggles if global setup missed them
+                try {
+                    ['themeToggle','langToggle'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (!el) return;
+                        // Avoid attaching duplicate handlers
+                        if (el._card_fallback_attached) return;
+                        const handler = function(e){ e.stopPropagation(); if (id === 'themeToggle') toggleTheme(); else toggleLanguage(); };
+                        el.addEventListener('click', handler);
+                        el._card_fallback_attached = true;
+                        console.debug('[card] attached fallback handler to', id);
+                    });
+                } catch (err) { console.debug('[card] fallback handlers failed', err); }
+
+                // Mark render complete (allow future renders)
+                window._cardRendering = false;
+
+                // Delegate header clicks as a robust fallback (pressed directly or dynamic insertion)
+                if (!window._cardHeaderDelegated) {
+                    window._cardHeaderDelegated = true;
+                    document.addEventListener('click', function (e) {
+                        const t = e.target;
+                        // support clicks on svg/path inside button by walking up
+                        const btn = t.closest && t.closest('#themeToggle, #langToggle, #cardBackBtn, #outlineToggleBtn');
+                        if (!btn) return;
+                        if (btn.id === 'themeToggle') { e.preventDefault(); toggleTheme(); }
+                        if (btn.id === 'langToggle') { e.preventDefault(); toggleLanguage(); }
+                        if (btn.id === 'cardBackBtn') { e.preventDefault(); goBack(); }
+                        if (btn.id === 'outlineToggleBtn') { e.preventDefault(); toggleMobileOutline(); }
+                    });
+                }
+            };
+            if (window.contentData && window.contentData.length > 0) run();
+            else window.addEventListener('contentLoaded', run);
+        }
+
+        document.addEventListener('DOMContentLoaded', function(){ showFullCard(); initializePage(); });
+    </script>
+</body>
+</html>

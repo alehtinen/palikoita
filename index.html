@@ -577,20 +577,5 @@
 
     <script src="loader.js"></script>
     <script src="app.js"></script>
-    <script>
-        // Initialize the page when content is loaded
-        window.addEventListener('contentLoaded', (e) => {
-            // Update global references from event data
-            window.contentData = e.detail.content;
-            window.mainTagDefinitions = e.detail.mainTagDefinitions;
-            window.typeDefinitions = e.detail.typeDefinitions;
-            window.tagDefinitions = e.detail.tagDefinitions;
-            
-            initializePage();
-            generateHeroCards();
-            renderTagFilters();
-            renderContent();
-        });
-    </script>
 </body>
 </html>
