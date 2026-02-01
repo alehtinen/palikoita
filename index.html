@@ -88,7 +88,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex flex-wrap justify-between items-center gap-4">
                 <div class="min-w-0">
-                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+                    <h1 class="text-xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
                         Palikoita elämään!
                     </h1>
                 </div>
@@ -331,30 +331,45 @@
     </div>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-16">
         <!-- Welcome Section -->
-        <div class="text-center mb-12">
+        <div class="hidden sm:block text-center mb-12">
             <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
                 <span class="lang-fi">
                     Täältä löydät (ehkä) hyödyllisiä linkkejä ja vinkkejä työnhakuun, opiskeluun, arkeen, terveyteen ja muuhun tekemiseen. Osa sisältö on tarkoitettu erityisesti Tampereella ja Pirkanmaalla asuville, mutta suurin osa soveltuu muuallakin Suomessa.
                 </span>
                 <span class="lang-en">
-                    Here you'll (maybe) find useful links and tips for job search, education, daily life, health and other activities. Some content is specifically intended for residents of Tampere and the Pirkanmaa region, but most is applicable elsewhere in Finland.  
+                    Here you'll (maybe) find useful links and tips for job search, education, daily life, health and other activities. Some content is specifically intended for residents of Tampere and the Pirkanmaa region, but most is applicable elsewhere in Finland.
                 </span>
             </p>
-                </span>
-            </p>
+        </div>
+
+        <!-- Mobile Search (visible on xs) -->
+        <div class="block sm:hidden mb-4">
+            <div class="flex gap-2">
+                <input 
+                    type="text" 
+                    id="searchInputMobile"
+                    class="flex-1 px-4 py-2 h-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                    placeholder="">
+                <!-- Filter button (mobile) -->
+                <button onclick="toggleTagFilters()" class="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg font-medium flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
 
         <!-- Dynamic Hero Cards (populated by JavaScript) -->
-        <div id="heroCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto mb-16">
+        <div id="heroCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-fr gap-6 max-w-7xl mx-auto mb-16">
             <!-- Cards will be dynamically generated here -->
         </div>
 
-        <!-- Browse All Content Section -->
-        <div class="max-w-6xl mx-auto">
+        <!-- Browse All Content Section (hidden on xs) -->
+        <div id="browseSection" class="hidden sm:block max-w-6xl mx-auto">
             <div class="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl p-8">
-                <div class="flex justify-between items-center mb-6 gap-4 flex-wrap sm:flex-nowrap">
+                <div class="hidden sm:flex justify-between items-center mb-6 gap-4 flex-wrap sm:flex-nowrap">
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex-shrink-0">
                         <span class="lang-fi">Sisällysluettelo</span>
                         <span class="lang-en">Table of Contents</span>
@@ -403,12 +418,12 @@
                     </div>
                 </div>
                 
-                <!-- Search Bar and Tag Filters -->
-                <div class="mb-6 flex gap-2">
+                <!-- Search Bar and Tag Filters (hidden on xs, moved above hero cards for mobile) -->
+                <div class="hidden sm:flex mb-6 gap-2">
                     <input 
                         type="text" 
                         id="searchInput"
-                        class="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                        class="flex-1 px-4 py-2 h-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
                         placeholder="">
                     <!-- Filter button -->
                     <button onclick="toggleTagFilters()" class="px-3 sm:px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg font-medium flex items-center gap-2">

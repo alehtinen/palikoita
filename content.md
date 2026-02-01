@@ -11,6 +11,7 @@ vapaa-aika: Vapaa-aika | Leisure | indigo
 tampere: Tampere | Tampere | orange
 ilmaiset: Ilmaista | Free stuff | cyan
 turva: Turva | Acute Help | pink
+ruoka: Ruoka | Food | emerald
 
 ## Types
 
