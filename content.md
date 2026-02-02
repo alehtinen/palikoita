@@ -1043,25 +1043,9 @@ Body FI: Tältä sivulta löydät keskeisimmät nuorten sosiaali- ja työllisyys
 
 Lisäksi löydät linkit Tampereen kaupungin ja Pirkanmaan hyvinvointialueen päätöstietokantoihin, joista voit seurata alueellisia päätöksiä.
 
-#### dklsadföa
-
-fdajlkfjadsö
-
-#### fakdsjf
-
-fklasödjföaskl
-
 Body EN: This page contains the most important laws related to youth social and employment services. The legal texts are in the Finlex service, which is a government-maintained service for legal and official information.
 
 You will also find links to the decision databases of the City of Tampere and the Pirkanmaa Wellbeing Services County, where you can follow regional decisions.
-
-#### dklsadföa
-
-fdajlkfjadsö
-
-#### fakdsjf
-
-fklasödjföaskl
 
 #### Links: Lait | Laws
 
@@ -1077,18 +1061,6 @@ fklasödjföaskl
   URL: https://www.finlex.fi/fi/laki/ajantasa/2006/20060072
   Description: Nuorten kasvu- ja elinolosuhteiden parantamista koskeva laki
 
-#### BBreak:
-
-#### Body EN: #### fjadlökjf fjadklsjf
-
-##### fdksajflkjas
-jlkjökj
-
-#### Body FI: fjkadlf Cordon bleu cheese | red
-
-##### fdalkfjöakldsfj
-jlkjkölj
-
 #### Links: Päätökset | Decisions
 
 - Name: Tampereen kaupungin päätökset
@@ -1098,30 +1070,6 @@ jlkjkölj
 - Name: Pirkanmaan hyvinvointialueen päätökset
   URL: https://pirha.cloudnc.fi/
   Description: Pirkanmaan hyvinvointialueen päätöstietokanta
-
-#### BBreak: 
-
-#### Body EN: fuck it | yellow
-fjadlökjf fjadklsjf
-
-jlkjökj
-
-##### lmao
-fdafa
-
-##### fucvk this shits
-fdafads
-
-#### Body FI: fjkadlf Cordon bleu cheese
-
-jlkjkölj
-
-##### lmao
-fdafa
-
-##### fucvk this shits
-fdafads
-
 
 #### Links: Yhteystiedot | Contacts
 - Name: Tampereen kaupungin päätökset
