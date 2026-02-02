@@ -1106,7 +1106,8 @@ Updated: 02.02.2026
 
 #### Links: Lisätietoa
 - Name: Kokemustoimintaverkosto
-  URL: https://kokemustoimintaverkosto.fi/kokemustieto_kayttoon/kasitteet/  Description: Kokemustoimijan ja -asiantuntijan erot
+  URL: https://kokemustoimintaverkosto.fi/kokemustieto_kayttoon/kasitteet/  
+  Description: Kokemustoimijan ja -asiantuntijan erot
 
 - Name: TAKK
   URL: https://www.takk.fi/fi/koulutukset/ammattialat/sosiaali-ja-terveysala/mielenterveyskuntoutujasta-kokemusasiantuntijaksi
