@@ -51,6 +51,7 @@ verkkonäkyvyys: Verkkonäkyvyys | Online Presence | cyan
 verkko: Verkko | Online | teal
 ulkoilu: Ulkoilu | Outdoors | red
 asuminen: Asuminen | Housing | green
+harrastus: Harrastus | Hobby | yellow
 
 # Content
 
