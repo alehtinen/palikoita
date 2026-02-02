@@ -1094,7 +1094,6 @@ You will also find links to the decision databases of the City of Tampere and th
   Pages: Luku 3, §12
 
 ### Kokemustoiminta
-
 Type: tip
 Main Tag: vapaa-aika, tampere
 Tags: harrastus
@@ -1106,7 +1105,6 @@ Last Checked: 02.02.2026
 Updated: 02.02.2026
 
 #### Links: Lisätietoa
-
 - Name: Kokemustoimintaverkosto
   URL: https://kokemustoimintaverkosto.fi/kokemustieto_kayttoon/kasitteet/  Description: Kokemustoimijan ja -asiantuntijan erot
 
