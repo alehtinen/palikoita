@@ -452,6 +452,18 @@ function parseMarkdownContent(markdown) {
                 currentItem.isContactUrl = contactValue === 'true' || contactValue === 'yes';
             } else if (trimmedLine.startsWith('Icon: ')) {
                 currentItem.icon = trimmedLine.substring(6).trim();
+            } else if (trimmedLine.startsWith('Short Name: ')) {
+                // Short name for use in link lists (bilingual)
+                const shortNamePart = trimmedLine.substring(12).trim();
+                const shortNameParts = shortNamePart.split('|');
+                currentItem.shortName = {
+                    fi: shortNameParts[0] ? shortNameParts[0].trim() : '',
+                    en: shortNameParts[1] ? shortNameParts[1].trim() : (shortNameParts[0] ? shortNameParts[0].trim() : '')
+                };
+            } else if (trimmedLine.startsWith('Collapsed: ')) {
+                // Whether link sections should be collapsed by default in link lists
+                const collapsedValue = trimmedLine.substring(11).trim().toLowerCase();
+                currentItem.collapsed = collapsedValue === 'true' || collapsedValue === 'yes';
             } else if (/^(card|id): /i.test(trimmedLine)) {
                 // Optional explicit ID/Card slug provided by author (use `ID:` preferred). Keep both fields for compatibility.
                 const idVal = trimmedLine.replace(/^(card|id):\s*/i, '').trim();

@@ -30,6 +30,8 @@ Type: link
 Main Tag: mainTagId, mainTagId2
 Tags: tag1, tag2, tag3
 Icon: https://example.com/icon.svg (optional - custom icon for this item)
+Short Name: Short FI | Short EN (optional - short name used in link list groupings)
+Collapsed: true (optional - collapses this card's links in all link lists except category-specific popup)
 URL: https://example.com (optional)
 URL Name: Custom link text (optional)
 URL Description: Description for the main URL (optional)
@@ -153,10 +155,13 @@ More content in English.
 ```
 
 **NEW FEATURES:**
-1. **Multiple Body Sections**: Add as many Body FI/Body EN sections as you need
-2. **Flexible Link Header Levels**: Use ####, #####, or ###### for link sections
-3. **Collapsible Sources/Contacts**: Sources (Lähteet) and contact sections are collapsed by default in modals to save space
-4. **Content Order**: Body sections and link sections appear in the exact order you write them
+1. **Short Name**: Add a concise name for grouping in link lists (optional bilingual field)
+2. **Collapsed State**: Mark cards with `Collapsed: true` to collapse their links by default in link lists
+3. **Multiple Body Sections**: Add as many Body FI/Body EN sections as you need
+4. **Flexible Link Header Levels**: Use ####, #####, or ###### for link sections
+5. **Collapsible Sources/Contacts**: Sources (Lähteet) and contact sections are collapsed by default in modals to save space
+6. **Content Order**: Body sections and link sections appear in the exact order you write them
+7. **Grouped Link Lists**: All link lists now group links by content card, using Short Name (or title) as header
 
 ## Complete Example
 
@@ -184,6 +189,8 @@ tuki: Tuki | Support | emerald
 Type: link
 Main Tag: työttömyys
 Tags: työ, tuki
+Short Name: TE | TE
+Collapsed: true
 Icon: https://example.com/te-services-icon.svg
 URL: https://www.te-palvelut.fi/
 Description FI: Työnhakijan palvelut verkossa
