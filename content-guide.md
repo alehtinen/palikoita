@@ -43,6 +43,14 @@ Added: 27.01.2026 (optional)
 Updated: 27.01.2026 (optional)
 Last Checked: 27.01.2026 (optional)
 PDF: true (optional - enables PDF download for this item)
+Short Name: - A concise bilingual name used as the header when grouping links in link lists
+    Format: Short Name: Short FI | Short EN
+    Falls back to full title if not specified
+Collapsed: - Boolean flag to collapse this card's links by default in link lists
+    Format: Collapsed: true or Collapsed: yes
+    Links are collapsed in all link list views EXCEPT when viewing that specific category's popup
+    This helps reduce clutter for cards with many links
+Keywords: word, word1, word2. Meant for helping the search, doesn't show up on the page.
 
 
 **MULTIPLE BODY SECTIONS SUPPORTED:**
@@ -106,6 +114,8 @@ Body EN: First English body content (optional)
 Same formatting options as Finnish body.
 
 #### Links: Section Title FI | Section Title EN (flexible header level: ####, #####, or ######)
+Collapsed: true = List is collapsed in the content card popup view
+Short Name: Short name grouping for the all links, contacts and sources views.
 - Name: Link Name FI | Link Name EN
   URL: https://example.com (optional if URL FI and URL EN exist)
   URL FI: https://fi.example.com (optional)
@@ -115,14 +125,6 @@ Same formatting options as Finnish body.
   Description EN: English description (optional)
   Contact: true (optional - marks this link as contact)
   URL Contact: https://contact.example.com (optional - separate contact URL for this link)
-  Short Name: - A concise bilingual name used as the header when grouping links in link lists
-      Format: Short Name: Short FI | Short EN
-      Falls back to full title if not specified
-  Collapsed: - Boolean flag to collapse this card's links by default in link lists
-      Format: Collapsed: true or Collapsed: yes
-      Links are collapsed in all link list views EXCEPT when viewing that specific category's popup
-      This helps reduce clutter for cards with many links
-  Keywords: word, word1, word2. Meant for helping the search, doesn't show up on the page.
 
 - Name: Another Link
   URL: https://another.com

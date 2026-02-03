@@ -469,6 +469,8 @@ Last Checked: 27.01.2026
 Keywords: 
 
 #### Links: Kaupat | Stores
+Collapsed: true
+Short Name: troboman
 - Name: Tokmanni
   URL: https://www.tokmanni.fi
   Description: Halpakauppaketju
@@ -490,25 +492,25 @@ Keywords:
   Description: Kioskiketju
 
 #### Links: KauHitpat | Stores
-Collapsed: true
-- Name: Tokmanni
-  URL: https://www.tokmanni.fi
+Short Name: Sähkö
+- Name: Tokmannifds
+  URL: https://www.tokmanni.fisdgs
   Description: Halpakauppaketju
 
-- Name: Prisma
-  URL: https://www.prisma.fi
+- Name: Prismafsd
+  URL: https://www.prisma.fifsdfs
   Description: S-ryhmän suuri päivittäistavaratalo
 
-- Name: Lidl
-  URL: https://www.lidl.fi
+- Name: Lidlf
+  URL: https://www.lidl.fifsdfsd
   Description: Saksalainen halpakauppaketju
 
-- Name: K-Ruoka
-  URL: https://www.k-ruoka.fi
+- Name: K-Ruokafsd
+  URL: https://www.k-ruoka.fifsdf
   Description: Keskon ruokakaupat
 
-- Name: R-kioski
-  URL: https://www.r-kioski.fi
+- Name: R-kioskifsdf
+  URL: https://www.r-kioski.fisdf
   Description: Kioskiketju
 
 ### Elektroniikkaliikkeet | Electronics Stores
@@ -1125,6 +1127,7 @@ Updated: 02.02.2026
   Description: Artikkeli
 
 #### Links: Kokemustoimintaa järjestöissä
+Short Name: Teppoman
 - Name: ADHD-liiton kokemustoiminta
   URL: https://adhd-liitto.fi/tukea/kokemustoiminta/
   Description: Interaktiivinen budjetointityökalu

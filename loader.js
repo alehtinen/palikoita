@@ -177,6 +177,12 @@ function parseMarkdownContent(markdown) {
                 if (!currentItem.linkSections) currentItem.linkSections = [];
                 if (!currentItem.contentOrder) currentItem.contentOrder = [];
                 currentLinkSection.order = currentItem.contentOrder.length;
+                console.log('[LOADER] Finalizing link section:', { 
+                    title: currentLinkSection.title, 
+                    shortName: currentLinkSection.shortName,
+                    collapsed: currentLinkSection.collapsed,
+                    linkCount: currentLinkSection.links.length 
+                });
                 currentItem.linkSections.push(currentLinkSection);
                 currentItem.contentOrder.push({ type: 'links', index: currentItem.linkSections.length - 1 });
                 currentLinkSection = null;
@@ -427,6 +433,21 @@ function parseMarkdownContent(markdown) {
                     } else if (trimmedLine.startsWith('Pages:')) {
                         currentLinkItem.pages = trimmedLine.substring(6).trim();
                     }
+                } else if (currentLinkSection && !currentLinkItem) {
+                    // Parse link section properties (when not inside a link item)
+                    if (trimmedLine.startsWith('Short Name:')) {
+                        const shortNamePart = trimmedLine.substring(11).trim();
+                        const shortNameParts = shortNamePart.split('|');
+                        currentLinkSection.shortName = {
+                            fi: shortNameParts[0] ? shortNameParts[0].trim() : '',
+                            en: shortNameParts[1] ? shortNameParts[1].trim() : (shortNameParts[0] ? shortNameParts[0].trim() : '')
+                        };
+                        console.log('[LOADER] Parsed link section Short Name:', currentLinkSection.shortName);
+                    } else if (trimmedLine.startsWith('Collapsed:')) {
+                        const collapsedValue = trimmedLine.substring(10).trim().toLowerCase();
+                        currentLinkSection.collapsed = collapsedValue === 'true' || collapsedValue === 'yes';
+                        console.log('[LOADER] Parsed link section Collapsed:', currentLinkSection.collapsed);
+                    }
                 }
             } else if (trimmedLine.startsWith('URL: ')) {
                 currentItem.url = trimmedLine.substring(5).trim();
@@ -576,6 +597,18 @@ function parseMarkdownContent(markdown) {
             }
             if (item.contentOrder) {
                 window.DEBUG_LOG('parse contentOrder', { idx: idx + 1, contentOrder: item.contentOrder });
+            }
+            if (item.linkSections) {
+                item.linkSections.forEach((section, i) => {
+                    window.DEBUG_LOG('parse linkSection', { 
+                        idx: idx + 1, 
+                        sectionIndex: i, 
+                        title: section.title,
+                        shortName: section.shortName,
+                        collapsed: section.collapsed,
+                        linkCount: section.links.length
+                    });
+                });
             }
         }
     });

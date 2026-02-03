@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Link Section Parser Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .section { margin-left: 20px; padding: 10px; border-left: 3px solid #4CAF50; margin-bottom: 10px; background: #f5f5f5; }
+        .error { color: red; font-weight: bold; }
+        .success { color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Link Section Parser Test</h1>
+    <p>Testing if Short Name and Collapsed properties are being parsed correctly for link sections</p>
+    <div id="output">Loading...</div>
+    <script src="loader.js"></script>
+    <script>
+        async function testParser() {
+            const data = await loadContent();
+            const output = document.getElementById('output');
+            
+            // Find items with link sections
+            const itemsWithLinkSections = data.filter(item => item.linkSections && item.linkSections.length > 0);
+            
+            let html = `<h2>Found ${itemsWithLinkSections.length} items with link sections</h2>`;
+            let sectionsWithProps = 0;
+            
+            itemsWithLinkSections.forEach(item => {
+                html += `<h3>${item.title?.fi || item.title?.en}</h3>`;
+                
+                item.linkSections.forEach((section, idx) => {
+                    const hasShortName = section.shortName !== undefined && section.shortName !== null;
+                    const hasCollapsed = section.collapsed !== undefined && section.collapsed !== null;
+                    
+                    if (hasShortName || hasCollapsed) sectionsWithProps++;
+                    
+                    html += `
+                        <div class="section">
+                            <strong>Section ${idx + 1}:</strong> ${section.title?.fi || section.title?.en}<br>
+                            <strong class="${hasShortName ? 'success' : 'error'}">Short Name:</strong> ${
+                                hasShortName ? 
+                                    `✓ ${section.shortName.fi} | ${section.shortName.en}` : 
+                                    '✗ NOT SET'
+                            }<br>
+                            <strong class="${hasCollapsed ? 'success' : ''}">Collapsed:</strong> ${
+                                hasCollapsed ? 
+                                    `✓ ${section.collapsed}` : 
+                                    'NOT SET (will use default)'
+                            }<br>
+                            <strong>isSources:</strong> ${section.isSources || false}<br>
+                            <strong>Links:</strong> ${section.links.length}<br>
+                        </div>
+                    `;
+                });
+            });
+            
+            html += `<hr><h3>Summary</h3><p>Sections with Short Name or Collapsed: <strong>${sectionsWithProps}</strong></p>`;
+            
+            output.innerHTML = html;
+            
+            // Also log to console
+            console.log('[TEST] Items with link sections:', itemsWithLinkSections);
+            itemsWithLinkSections.forEach(item => {
+                if (item.linkSections) {
+                    item.linkSections.forEach(section => {
+                        console.log('[TEST] Link section:', {
+                            title: section.title,
+                            shortName: section.shortName,
+                            collapsed: section.collapsed,
+                            linkCount: section.links.length
+                        });
+                    });
+                }
+            });
+        }
+        
+        testParser();
+    </script>
+</body>
+</html>
