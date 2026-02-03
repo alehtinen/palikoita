@@ -44,6 +44,7 @@ Updated: 27.01.2026 (optional)
 Last Checked: 27.01.2026 (optional)
 PDF: true (optional - enables PDF download for this item)
 
+
 **MULTIPLE BODY SECTIONS SUPPORTED:**
 You can now have multiple Body FI/Body EN sections interspersed with link sections!
 They will be displayed in the order they appear.
@@ -114,6 +115,13 @@ Same formatting options as Finnish body.
   Description EN: English description (optional)
   Contact: true (optional - marks this link as contact)
   URL Contact: https://contact.example.com (optional - separate contact URL for this link)
+  Short Name: - A concise bilingual name used as the header when grouping links in link lists
+      Format: Short Name: Short FI | Short EN
+      Falls back to full title if not specified
+  Collapsed: - Boolean flag to collapse this card's links by default in link lists
+      Format: Collapsed: true or Collapsed: yes
+      Links are collapsed in all link list views EXCEPT when viewing that specific category's popup
+      This helps reduce clutter for cards with many links
 
 - Name: Another Link
   URL: https://another.com

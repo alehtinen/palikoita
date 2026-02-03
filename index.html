@@ -109,8 +109,15 @@
                         </svg>
                         <span class="hidden sm:inline lang-fi">Yhteystiedot</span>
                         <span class="hidden sm:inline lang-en">Contact Info</span>
-                    </button>
-                    
+                    </button>                    
+                    <!-- Sources -->
+                    <button onclick="showSourcesModal()" class="p-2 sm:px-3 sm:py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium flex items-center gap-1 transition-colors text-xs sm:text-sm" title="Näytä kaikki sivulla esiintyvät lähteet | Show all sources on the site">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                        <span class="hidden sm:inline lang-fi">Lähteet</span>
+                        <span class="hidden sm:inline lang-en">Sources</span>
+                    </button>                    
                     <!-- Download Contents -->
                     <button onclick="showDownloadsModal()" class="p-2 sm:px-3 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-1 transition-colors text-xs sm:text-sm" title="Lataa sisältöä | Download contents">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -290,6 +297,13 @@
                     <span class="text-gray-900 dark:text-white font-medium">
                         <span class="lang-fi">Sisällytä yhteystiedot -PDF</span>
                         <span class="lang-en">Include Contacts PDF</span>
+                    </span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="zipIncludeItemPDFs" checked class="w-4 h-4 text-purple-600 rounded">
+                    <span class="text-gray-900 dark:text-white font-medium">
+                        <span class="lang-fi">Sisällytä erilliset PDF:t (kohteet, joissa PDF: true)</span>
+                        <span class="lang-en">Include individual PDFs (items with PDF: true)</span>
                     </span>
                 </label>
             </div>
@@ -588,6 +602,53 @@
                     </div>
                 </div>
                 <div id="contactsContent" class="overflow-x-auto">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sources Modal -->
+    <div id="sourcesModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-8">
+                <div class="flex justify-between items-start mb-6 gap-2">
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex-1">
+                        <span class="lang-fi">Lähteet</span>
+                        <span class="lang-en">Sources</span>
+                    </h3>
+                    <div class="flex gap-2 items-start flex-shrink-0">
+                        <button onclick="downloadSourcesPDF()" class="inline-flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors" title="Lataa lähteet PDF:nä | Download sources as PDF">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            PDF
+                        </button>
+                        <button onclick="closeSourcesModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    <span class="lang-fi">Tässä näkyvät kaikki sivulla käytetyt lähteet.</span>
+                    <span class="lang-en">This shows all sources used on the site.</span>
+                </p>
+                <!-- Category Filter -->
+                <div class="mb-4 border-b border-gray-200 dark:border-gray-700 pb-4">
+                    <button onclick="toggleSourcesFilter()" class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                        </svg>
+                        <span class="lang-fi">Suodata kategorioita</span>
+                        <span class="lang-en">Filter categories</span>
+                    </button>
+                    <div id="sourcesFilter" class="hidden mt-3 grid grid-cols-2 md:grid-cols-3 gap-2">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+                <div id="sourcesContent" class="overflow-x-auto">
                     <!-- Content will be populated by JavaScript -->
                 </div>
             </div>

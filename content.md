@@ -262,6 +262,7 @@ Last Checked: 27.01.2026
 Type: link
 Main Tag: tampere
 Tags: ulkoilu, tampere-alue, vapaa-aika
+Short Name: Ulkoilu
 PDF: true
 URL: https://ulkoilutampereenseutu.fi/
 Description FI: Karttapalvelu ja linkkejä joista näkee ulkoilumahdollisuudet Tampereen alueella. Osa linkeistä näyttää myös muiden alueiden mahdollisuuksia.
@@ -399,6 +400,7 @@ Description FI: Tärkeimmät sähkönmyyjät Suomessa. Muista että sähkönsiir
 Description EN: Main electricity providers in Finland. Remember that the electricity transmission bill always comes separately from the electricity bill. Each transmission company area has a supplier of last resort who must sell an electricity contract even to those without credit information. Choose a contract according to your needs: a fixed-term contract is suitable if you want a price guarantee, while exchange electricity follows market prices.
 Added: 27.01.2026
 Last Checked: 27.01.2026
+Short Name: Sähkö
 
 #### Links: Sähkönmyyjät | Electricity Providers
 - Name: Väre
@@ -421,6 +423,7 @@ Description FI: Vertaile sähkösopimuksia ja löydä edullisin vaihtoehto. Kilp
 Description EN: Compare electricity contracts and find the cheapest option. By comparing you can save significantly on your electricity bill.
 Added: 27.01.2026
 Last Checked: 27.01.2026
+Short Name: Sähkö
 
 #### Links: Vertailupalvelut | Comparison Services
 - Name: Sähkönhinta.fi
@@ -443,6 +446,8 @@ Description FI: Kuluttajaliiton sivuilta löydät hyödyllistä tietoa sähköso
 Description EN: From the Consumer Union pages you will find useful information about electricity contracts and electricity competition. Learn to make wise choices regarding energy.
 Added: 27.01.2026
 Last Checked: 27.01.2026
+Collapsed: true
+Short Name: Sähkö
 
 #### Links: Kuluttajatieto | Consumer Information
 - Name: Kuluttajaliitto - Sähkön kilpailutus
@@ -463,6 +468,29 @@ Added: 27.01.2026
 Last Checked: 27.01.2026
 
 #### Links: Kaupat | Stores
+Collapsed: true
+- Name: Tokmanni
+  URL: https://www.tokmanni.fi
+  Description: Halpakauppaketju
+
+- Name: Prisma
+  URL: https://www.prisma.fi
+  Description: S-ryhmän suuri päivittäistavaratalo
+
+- Name: Lidl
+  URL: https://www.lidl.fi
+  Description: Saksalainen halpakauppaketju
+
+- Name: K-Ruoka
+  URL: https://www.k-ruoka.fi
+  Description: Keskon ruokakaupat
+
+- Name: R-kioski
+  URL: https://www.r-kioski.fi
+  Description: Kioskiketju
+
+#### Links: KauHitpat | Stores
+Collapsed: true
 - Name: Tokmanni
   URL: https://www.tokmanni.fi
   Description: Halpakauppaketju

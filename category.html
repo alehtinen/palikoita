@@ -102,8 +102,15 @@
                         </svg>
                         <span class="hidden sm:inline lang-fi">Yhteystiedot</span>
                         <span class="hidden sm:inline lang-en">Contact Info</span>
-                    </button>
-                    
+                    </button>                    
+                    <!-- Sources -->
+                    <button onclick="showSourcesModal()" class="p-2 sm:px-3 sm:py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium flex items-center gap-1 transition-colors text-xs sm:text-sm" title="Näytä kaikki sivulla esiintyvät lähteet | Show all sources on the site">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                        <span class="hidden sm:inline lang-fi">Lähteet</span>
+                        <span class="hidden sm:inline lang-en">Sources</span>
+                    </button>                    
                     <!-- Download Contents -->
                     <button onclick="showDownloadsModal()" class="p-2 sm:px-3 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-1 transition-colors text-xs sm:text-sm" title="Lataa sisältöä | Download contents">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,6 +286,13 @@
                     <span class="text-gray-900 dark:text-white font-medium">
                         <span class="lang-fi">Sisällytä kaikki linkit -PDF</span>
                         <span class="lang-en">Include All Links PDF</span>
+                    </span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="zipIncludeItemPDFs" checked class="w-4 h-4 text-purple-600 rounded">
+                    <span class="text-gray-900 dark:text-white font-medium">
+                        <span class="lang-fi">Sisällytä erilliset PDF:t (kohteet, joissa PDF: true)</span>
+                        <span class="lang-en">Include individual PDFs (items with PDF: true)</span>
                     </span>
                 </label>
             </div>
