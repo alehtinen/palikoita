@@ -1155,3 +1155,123 @@ Short Name: Teppoman
 - Name: Finfami Pirkanmaa
   URL: https://www.finfamipirkanmaa.fi/kokemusasiantuntijatoiminta/
   Description: Kokemusasiantuntijatoiminta
+
+## Ruoka
+
+### Ruokareseptit verkossa | Online Food Recipes
+Type: link
+Main Tag: ruoka
+Tags: ruoka, resurssit, arki
+Description FI: Suomalaisia reseptisivustoja arkeen ja juhlaan.
+Description EN: Finnish recipe websites for everyday and festive cooking.
+Body FI: Reseptisivustoilta löydät ruokaohjeita erilaisiin tilanteisiin ja tarpeisiin. 
+
+**Hyödyllisiä hakusanoja:**
+- **One pot** tai **yhden kattilan ruoat** - kaikki kypsyy samassa padassa, vähemmän tiskiä
+- **Arkiruoka** - nopeita ja helppoja perusruokia
+- **Pikaruoka** tai **nopea** - alle 30 minuutissa valmista
+- **Budjettiruoka** tai **edullinen** - säästäviä reseptejä
+- **Kasvis** tai **vegaani** - kasvispohjaisia vaihtoehtoja
+- **Keitot** - helppoja ja ruokaisaita
+- **Uunissa valmistuvat** - tee valmiiksi ja laita uuniin
+- **Pastaruoat** - nopeita klassikkoja
+
+Monilla sivustoilla voit rajata hakua myös ainesosan, ruokalajin tai valmistusajan mukaan.
+
+Body EN: Recipe websites offer cooking instructions for different situations and needs.
+
+**Useful search terms:**
+- **One pot** - everything cooks in one pot, less dishes
+- **Everyday food** or **weeknight dinner** - quick and easy basic meals  
+- **Quick** or **fast** - ready in under 30 minutes
+- **Budget** or **cheap** - money-saving recipes
+- **Vegetarian** or **vegan** - plant-based options
+- **Soups** - easy and filling
+- **Oven-baked** - prepare and put in the oven
+- **Pasta dishes** - quick classics
+
+Many websites allow you to filter by ingredient, dish type, or cooking time.
+
+Added: 05.02.2026
+Last Checked: 05.02.2026
+
+#### Links: Reseptisivustot | Recipe Sites
+- Name: K-Ruoka reseptit
+  URL: https://www.k-ruoka.fi/reseptit
+  Description: Monipuolisia reseptejä K-ruoan sivuilta
+
+- Name: Valio reseptihaku
+  URL: https://www.valio.fi/reseptihaku/
+  Description: Valion reseptikokoelma
+
+- Name: Kotikokki
+  URL: https://www.kotikokki.net/
+  Description: Suomen suurin reseptiyhteisö
+
+- Name: Kinuskikissa
+  URL: https://www.kinuskikissa.fi/
+  Description: Leipomis- ja jälkiruokareseptejä
+
+- Name: Yhteishyvä
+  URL: https://yhteishyva.fi/ruoka
+  Description: Yhteishyvän ruokareseptit
+
+- Name: Hellapoliisi
+  URL: https://www.hellapoliisi.fi/
+  Description: Ruokablogi ja reseptit
+
+- Name: Soppa365
+  URL: https://www.soppa365.fi/reseptit/uusimmat
+  Description: Uusimmat reseptit Soppa365:stä
+
+- Name: Martat
+  URL: https://www.martat.fi/reseptit/#/?search=&seasonals=&recipeClasses=&ingredients=&diets=&recipeThemes=&contentTypes=RECIPE&offset=0
+  Description: Marttajärjestön reseptiarkisto
+
+- Name: Kotiliesi reseptihaku
+  URL: https://kotiliesi.fi/reseptihaku/
+  Description: Kotilieden reseptit
+
+- Name: Ruokaboksi
+  URL: https://ruokaboksi.fi/reseptit
+  Description: Ruokaboksin reseptikokoelma
+
+- Name: IS Ruokala
+  URL: https://www.is.fi/ruokala/reseptit/
+  Description: Ilta-Sanomien ruokareseptit
+
+- Name: WWF reseptit
+  URL: https://wwf.fi/ruoka/reseptit/
+  Description: Kestäviä ruokareseptejä WWF:ltä
+
+- Name: HK reseptit
+  URL: https://www.hk.fi/reseptit/
+  Description: HK:n reseptikokoelma
+
+- Name: Meillä kotona
+  URL: https://www.meillakotona.fi/aiheet/ruoka
+  Description: Meillä kotona -lehden ruokareseptit
+
+- Name: Alkon reseptit
+  URL: https://www.alko.fi/juoma-ruoka/resepti
+  Description: Alkon ruoka- ja juomareseptit
+
+- Name: Saa syödä
+  URL: https://www.saasyoda.fi/reseptihaku
+  Description: Saas yödä -reseptit
+
+- Name: Arla arkiruoka
+  URL: https://www.arla.fi/reseptit/kaikki-teemat/helppoa-arkiruokaa/
+  Description: Arlan helppoja arkiruokareseptejä
+
+- Name: Snellman reseptit
+  URL: https://snellman.fi/fi/reseptit/
+  Description: Snellmanin reseptikokoelma
+
+- Name: MTV Makuja
+  URL: https://www.mtvuutiset.fi/makuja/reseptit
+  Description: MTV:n ruokareseptit
+
+- Name: Valio kotiruokasuosikit
+  URL: https://www.valio.fi/ruoka/arkiruoka/suomalaisten-kotiruokasuosikit/
+  Description: Suomalaisten suosikkiruoat
