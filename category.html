@@ -107,7 +107,7 @@
                             <span class="hidden sm:inline lang-fi">Valikko</span>
                             <span class="hidden sm:inline lang-en">Menu</span>
                         </button>
-                        <div id="menuDropdown" class="hidden absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50">
+                        <div id="menuDropdown" class="hidden absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-[70]">
                             <div class="py-2">
                                 <button onclick="showAllLinksModal(); toggleMenu();" class="w-full px-4 py-3 text-left hover:bg-orange-50 dark:hover:bg-orange-900/30 flex items-center gap-3 transition-colors">
                                     <svg class="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -650,19 +650,34 @@
         function toggleMenu() {
             const dropdown = document.getElementById('menuDropdown');
             const categoryDownloadDropdown = document.getElementById('categoryDownloadDropdown');
-            // Close category download menu if open
-            if (categoryDownloadDropdown && !categoryDownloadDropdown.classList.contains('hidden')) {
+            const categoryNavMenu = document.getElementById('categoryNavMenu');
+            
+            const isCurrentlyHidden = dropdown.classList.contains('hidden');
+            
+            // Close other menus first
+            if (categoryDownloadDropdown) {
                 categoryDownloadDropdown.classList.add('hidden');
             }
-            dropdown.classList.toggle('hidden');
+            if (categoryNavMenu) {
+                categoryNavMenu.classList.add('hidden');
+            }
+            
+            // Then toggle main menu
+            if (isCurrentlyHidden) {
+                dropdown.classList.remove('hidden');
+            } else {
+                dropdown.classList.add('hidden');
+            }
         }
         
         // Close menu when clicking outside
         document.addEventListener('click', function(event) {
             const dropdown = document.getElementById('menuDropdown');
             const menuButton = event.target.closest('button[onclick="toggleMenu()"]');
+            const categoryDownloadButton = event.target.closest('button[onclick="toggleCategoryDownloadMenu()"]');
+            const categoryNavButton = event.target.closest('button[onclick="toggleCategoryNav()"]');
             
-            if (!menuButton && !dropdown?.contains(event.target)) {
+            if (!menuButton && !categoryDownloadButton && !categoryNavButton && !dropdown?.contains(event.target)) {
                 dropdown?.classList.add('hidden');
             }
         });
@@ -671,19 +686,36 @@
         function toggleCategoryDownloadMenu() {
             const dropdown = document.getElementById('categoryDownloadDropdown');
             const menuDropdown = document.getElementById('menuDropdown');
-            // Close main menu if open
+            const categoryNavMenu = document.getElementById('categoryNavMenu');
+            
+            if (!dropdown) return;
+            
+            const isCurrentlyHidden = dropdown.classList.contains('hidden');
+            
+            // Close other menus first
             if (menuDropdown && !menuDropdown.classList.contains('hidden')) {
                 menuDropdown.classList.add('hidden');
             }
-            dropdown.classList.toggle('hidden');
+            if (categoryNavMenu && !categoryNavMenu.classList.contains('hidden')) {
+                categoryNavMenu.classList.add('hidden');
+            }
+            
+            // Then toggle category download menu
+            if (isCurrentlyHidden) {
+                dropdown.classList.remove('hidden');
+            } else {
+                dropdown.classList.add('hidden');
+            }
         }
 
         // Close category download menu when clicking outside
         document.addEventListener('click', function(event) {
             const dropdown = document.getElementById('categoryDownloadDropdown');
             const menuButton = event.target.closest('button[onclick="toggleCategoryDownloadMenu()"]');
+            const mainMenuButton = event.target.closest('button[onclick="toggleMenu()"]');
+            const categoryNavButton = event.target.closest('button[onclick="toggleCategoryNav()"]');
             
-            if (!menuButton && !dropdown?.contains(event.target)) {
+            if (!menuButton && !mainMenuButton && !categoryNavButton && !dropdown?.contains(event.target)) {
                 dropdown?.classList.add('hidden');
             }
         });

@@ -319,6 +319,8 @@ Notes on slug normalization:
 - `Description EN:` - optional, English description
 - `Contact:` - optional, true marks as contact link
 - `URL Contact:` - optional, separate contact URL
+- `Collapsed:` true = List is collapsed in the content card popup view
+- `Short Name:` Short name grouping for the all links, contacts and sources views.
 
 ### Source Fields (for #### Lähteet: sections)
 - `Name:` - required, bilingual with | separator

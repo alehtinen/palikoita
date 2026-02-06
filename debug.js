@@ -620,5 +620,142 @@ window.addEventListener && window.addEventListener('unhandledrejection', functio
   } catch (e) { window.DEBUG_LOG && window.DEBUG_LOG('error','[DEBUG PANEL ERROR]', e); }
 })();
 
+// Debug function to extract and download all URLs from content
+// This extracts the EXACT same links as the "Show All Links" modal
+(function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('debug') === 'links') {
+    window.DEBUG_LOG && window.DEBUG_LOG('info', '[DEBUG] Extracting all URLs from content (same as All Links button)...');
+    
+    // Wait for content to be loaded
+    function extractAndDownloadURLs() {
+      if (!window.contentData || !Array.isArray(window.contentData)) {
+        window.DEBUG_LOG && window.DEBUG_LOG('warn', '[DEBUG] Content not yet loaded, waiting...');
+        setTimeout(extractAndDownloadURLs, 500);
+        return;
+      }
+      
+      try {
+        const seenUrls = new Set();
+        const urls = [];
+        
+        // Helper functions (same as in renderAllLinks in app.js)
+        const extractUrl = (u) => {
+          if (!u) return '';
+          if (typeof u === 'string') return u.trim();
+          if (typeof u === 'object') {
+            // Try current language first, then fallback to fi/en
+            const currentLang = window.currentLang || 'fi';
+            return (u[currentLang] || u.fi || u.en || '').trim();
+          }
+          return '';
+        };
+        
+        const isValidUrl = (u) => /^https?:\/\//i.test(u) || /^mailto:/i.test(u) || /^tel:/i.test(u);
+        
+        const SITE_URL = window.location?.origin || '';
+        
+        // Extract ALL URLs from all items - both languages (FI and EN) plus universal
+        window.contentData.forEach((item) => {
+          // 1. Primary URL field - extract both FI and EN versions if they exist
+          if (item.url) {
+            if (typeof item.url === 'string') {
+              const url = item.url.trim();
+              if (url && isValidUrl(url) && url !== SITE_URL && !seenUrls.has(url)) {
+                seenUrls.add(url);
+                urls.push(url);
+              }
+            } else if (typeof item.url === 'object') {
+              // Extract both fi and en URLs
+              ['fi', 'en'].forEach(lang => {
+                const url = (item.url[lang] || '').trim();
+                if (url && isValidUrl(url) && url !== SITE_URL && !seenUrls.has(url)) {
+                  seenUrls.add(url);
+                  urls.push(url);
+                }
+              });
+            }
+          }
+          
+          // 2. Additional links arrays - get ALL language versions
+          let additionalLinks = [];
+          if (item.links) additionalLinks = [...additionalLinks, ...item.links];
+          if (item.linksFI) additionalLinks = [...additionalLinks, ...item.linksFI];
+          if (item.linksEN) additionalLinks = [...additionalLinks, ...item.linksEN];
+          
+          // 3. Link sections (YAML-style) - extract both FI and EN
+          if (item.linkSections) {
+            item.linkSections.forEach(section => {
+              section.links.forEach(link => {
+                // Skip contact links (they appear in Contacts modal instead)
+                if (link.isContact || link.urlContact) return;
+                
+                // Extract URLs for both languages
+                if (link.url) {
+                  if (typeof link.url === 'string') {
+                    additionalLinks.push({ url: link.url });
+                  } else if (typeof link.url === 'object') {
+                    ['fi', 'en'].forEach(lang => {
+                      if (link.url[lang]) {
+                        additionalLinks.push({ url: link.url[lang] });
+                      }
+                    });
+                  }
+                }
+              });
+            });
+          }
+          
+          // Process all additional links
+          additionalLinks.forEach(link => {
+            const url = extractUrl(link.url);
+            if (url && isValidUrl(url) && url !== SITE_URL && !seenUrls.has(url)) {
+              seenUrls.add(url);
+              urls.push(url);
+            }
+          });
+        });
+        
+        window.DEBUG_LOG && window.DEBUG_LOG('info', `[DEBUG] Found ${urls.length} unique URLs`);
+        console.log(`[DEBUG] Total URLs found: ${urls.length}`);
+        console.log('First 10 URLs:', urls.slice(0, 10));
+        
+        if (urls.length === 0) {
+          window.DEBUG_LOG && window.DEBUG_LOG('warn', '[DEBUG] No URLs found! Check content structure');
+          console.log('[DEBUG] contentData:', window.contentData);
+          alert('No URLs found in content. Check console for details.');
+          return;
+        }
+        
+        // Download as plain text file (one URL per line)
+        const blob = new Blob([urls.join('\n')], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'all-links.txt';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        
+        window.DEBUG_LOG && window.DEBUG_LOG('info', `[DEBUG] Downloaded ${urls.length} URLs to all-links.txt`);
+        console.log('[DEBUG] Download complete: all-links.txt');
+        
+      } catch (e) {
+        window.DEBUG_LOG && window.DEBUG_LOG('error', '[DEBUG] Error extracting URLs:', e);
+        console.error('[DEBUG] Error details:', e);
+      }
+    }
+    
+    // Start extraction when content is ready
+    if (window.contentData && window.contentData.length > 0) {
+      extractAndDownloadURLs();
+    } else {
+      window.addEventListener('contentLoaded', extractAndDownloadURLs);
+      // Also try after a delay in case event already fired
+      setTimeout(extractAndDownloadURLs, 1000);
+      setTimeout(extractAndDownloadURLs, 2000);
+    }
+  }
+})();
+
 // End of debug helpers
 
