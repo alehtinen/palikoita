@@ -652,6 +652,9 @@ function markdownToHtml(text) {
     // Handle bold **text** FIRST
     html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="text-gray-900 dark:text-white">$1</strong>');
     
+    // Convert --- to a special marker that will become <hr>
+    html = html.replace(/\n---\n/g, '\n\n__HORIZONTAL_RULE__\n\n');
+    
     // Split by double newlines for paragraphs
     const blocks = html.split('\n\n');
     const processedBlocks = [];
@@ -660,8 +663,8 @@ function markdownToHtml(text) {
         let block = blocks[i].trim();
         if (!block) continue;
         
-        // Check if this is a horizontal rule (---)
-        if (block === '---') {
+        // Check if this is a horizontal rule marker
+        if (block === '__HORIZONTAL_RULE__') {
             processedBlocks.push('<hr class="my-6 border-gray-300 dark:border-gray-600">');
             continue;
         }
@@ -672,15 +675,25 @@ function markdownToHtml(text) {
             const calloutType = calloutMatch[1].toLowerCase();
             const title = calloutMatch[2].trim() || (calloutType.charAt(0).toUpperCase() + calloutType.slice(1));
             
-            // Check if next block exists and is the content (not another callout or special formatting)
-            let content = '';
-            if (i + 1 < blocks.length) {
-                const nextBlock = blocks[i + 1].trim();
-                if (nextBlock && !nextBlock.match(/^>\[!/) && !nextBlock.match(/^#{1,6}\s/)) {
-                    content = nextBlock;
-                    i++; // Skip next block
+            // Extract content from lines within this block that start with >
+            const calloutLines = block.split('\n');
+            const contentLines = [];
+            const nonCalloutLines = [];
+            
+            for (let j = 1; j < calloutLines.length; j++) {
+                const line = calloutLines[j].trim();
+                // Only include lines that start with >
+                if (line.startsWith('>')) {
+                    const cleanLine = line.substring(1).trim();
+                    if (cleanLine) {
+                        contentLines.push(cleanLine);
+                    }
+                } else if (line) {
+                    // Collect non-callout lines to process later
+                    nonCalloutLines.push(line);
                 }
             }
+            const content = contentLines.join('<br>');
             
             // Define colors and icons for different callout types
             const calloutStyles = {
@@ -703,7 +716,7 @@ function markdownToHtml(text) {
             processedBlocks.push(`
                 <div class="my-4 p-4 rounded-lg border-l-4 ${style.border} ${style.bg}">
                     <div class="flex items-start gap-2">
-                        <span class="text-lg flex-shrink-0">${style.icon}</span>
+                        <span class="text-lg flex-shrink-0 ${style.text}">${style.icon}</span>
                         <div class="flex-1">
                             <div class="font-semibold ${style.text} mb-1">${title}</div>
                             ${content ? `<div class="${style.text} opacity-90">${content}</div>` : ''}
@@ -711,7 +724,14 @@ function markdownToHtml(text) {
                     </div>
                 </div>
             `);
-            continue;
+            
+            // If there were non-callout lines in this block, process them as a new block
+            if (nonCalloutLines.length > 0) {
+                block = nonCalloutLines.join('\n');
+                // Don't continue - let it fall through to normal processing
+            } else {
+                continue;
+            }
         }
         
         // Split block into lines
