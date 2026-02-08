@@ -1210,6 +1210,7 @@ Alla olevalla hakukoneella voit etsiä netistä reseptejä ehkä tavallista help
 >[!search]copy+collapsed Reseptihaku
 >SITES: card
 >sID: reseptisivuja
+>FREEFORM: true++
 >INCLUDE: true
 >EXCLUDE: true
 >EXLINKS: true

@@ -219,24 +219,20 @@
             function renderSearchInterface(searchBlock) {
                 const config = searchBlock.config;
                 
-                // Determine sites based on SITES rule
-                let sites = [];
+                // Get card data
+                const card = window.contentData.find(item => item.id == currentCardId);
+                
+                // Collect sites based on SITES rule
+                const sites = collectSitesForSearch(config.sites || 'card', card);
+                
+                // Add custom URLs if specified
                 if (config.customUrls && config.customUrls.length > 0) {
-                    sites = config.customUrls.map(url => {
-                        try {
-                            const domain = new URL(url).hostname.replace('www.', '');
-                            return { domain, name: domain };
-                        } catch {
-                            return { domain: url, name: url };
+                    config.customUrls.forEach(url => {
+                        const domain = extractDomain(url);
+                        if (domain && !sites.some(s => s.domain === domain)) {
+                            sites.push({ domain: domain, name: domain });
                         }
                     });
-                } else {
-                    // This would need to be implemented based on SITES rule
-                    // For now, just use empty array or fetch from current card
-                    const card = window.contentData.find(item => item.id == currentCardId);
-                    if (card && config.sites) {
-                        sites = extractSitesFromCard(card, config.sites);
-                    }
                 }
                 
                 // Generate unique block ID
@@ -272,37 +268,114 @@
                 );
             }
             
-            function extractSitesFromCard(card, sitesRule) {
-                // This should implement the same logic as in loader.js
-                // For now, return empty array - will be implemented properly
+            function collectSitesForSearch(sitesRule, cardData) {
                 const sites = [];
                 
-                // Extract URLs from card based on sitesRule
-                if (sitesRule === 'all') {
-                    // Get all URLs from all cards
-                    window.contentData.forEach(item => {
-                        if (item.url) {
-                            try {
-                                const domain = new URL(item.url).hostname.replace('www.', '');
-                                const lang = localStorage.getItem('preferredLanguage') || 'fi';
-                                const name = item.title[lang] || item.title.fi;
-                                sites.push({ domain, name });
-                            } catch {}
-                        }
-                    });
-                } else if (sitesRule === 'card') {
-                    if (card.url) {
-                        try {
-                            const domain = new URL(card.url).hostname.replace('www.', '');
-                            const lang = localStorage.getItem('preferredLanguage') || 'fi';
-                            const name = card.title[lang] || card.title.fi;
-                            sites.push({ domain, name });
-                        } catch {}
-                    }
+                if (!window.contentData || !Array.isArray(window.contentData)) {
+                    return sites;
                 }
-                // Add other rules (category, tag, keywords) if needed
+                
+                switch(sitesRule) {
+                    case 'all':
+                        // Collect from all cards
+                        window.contentData.forEach(item => {
+                            extractSitesFromItem(item, sites);
+                        });
+                        break;
+                        
+                    case 'category':
+                        // Collect from cards with same main tag
+                        if (cardData && cardData.mainTag) {
+                            window.contentData.forEach(item => {
+                                if (item.mainTag === cardData.mainTag) {
+                                    extractSitesFromItem(item, sites);
+                                }
+                            });
+                        }
+                        break;
+                        
+                    case 'tag':
+                        // Collect from cards with overlapping tags
+                        if (cardData && cardData.tags) {
+                            const cardTags = Array.isArray(cardData.tags) ? cardData.tags : cardData.tags.split(',').map(t => t.trim());
+                            window.contentData.forEach(item => {
+                                const itemTags = Array.isArray(item.tags) ? item.tags : (item.tags || '').split(',').map(t => t.trim());
+                                if (cardTags.some(tag => itemTags.includes(tag))) {
+                                    extractSitesFromItem(item, sites);
+                                }
+                            });
+                        }
+                        break;
+                        
+                    case 'keywords':
+                        // Collect from cards with overlapping keywords
+                        if (cardData && cardData.keywords) {
+                            const cardKeywords = cardData.keywords.split(',').map(k => k.trim().toLowerCase());
+                            window.contentData.forEach(item => {
+                                if (item.keywords) {
+                                    const itemKeywords = item.keywords.split(',').map(k => k.trim().toLowerCase());
+                                    if (cardKeywords.some(kw => itemKeywords.includes(kw))) {
+                                        extractSitesFromItem(item, sites);
+                                    }
+                                }
+                            });
+                        }
+                        break;
+                        
+                    case 'card':
+                    default:
+                        // Only from current card
+                        if (cardData) {
+                            extractSitesFromItem(cardData, sites);
+                        }
+                        break;
+                }
                 
                 return sites;
+            }
+            
+            function extractSitesFromItem(card, sites) {
+                if (!card.linkSections || !Array.isArray(card.linkSections)) {
+                    return;
+                }
+                
+                const lang = localStorage.getItem('preferredLanguage') || 'fi';
+                
+                card.linkSections.forEach(section => {
+                    if (section.links && Array.isArray(section.links)) {
+                        section.links.forEach(link => {
+                            if (link.url) {
+                                // Handle multilingual URLs (object with fi/en) or plain strings
+                                const url = typeof link.url === 'object' ? (link.url.fi || link.url.en) : link.url;
+                                const domain = extractDomain(url);
+                                if (domain && !sites.some(s => s.domain === domain)) {
+                                    // Handle multilingual names
+                                    const name = typeof link.name === 'object' ? (link.name[lang] || link.name.fi || link.name.en) : link.name;
+                                    sites.push({
+                                        domain: domain,
+                                        name: name || domain
+                                    });
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+            
+            function extractDomain(url) {
+                try {
+                    // Add protocol if missing
+                    const urlWithProtocol = url.startsWith('http') ? url : 'https://' + url;
+                    const urlObj = new URL(urlWithProtocol);
+                    return urlObj.hostname.replace(/^www\./, '');
+                } catch (e) {
+                    // If it's just a domain, return as is
+                    return url.replace(/^www\./, '').split('/')[0];
+                }
+            }
+            
+            function extractSitesFromCard(card, sitesRule) {
+                return collectSitesForSearch(sitesRule, card);
             }
             
             function setupThemeToggle() {
