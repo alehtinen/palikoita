@@ -1240,21 +1240,6 @@ Many websites allow you to filter by ingredient, dish type, or cooking time.
 
 Added: 05.02.2026
 Last Checked: 05.02.2026
-
-#### Links: Valmistajien reseptit | Recipes by food labels
-- Name: Valio reseptihaku
-  URL: https://www.valio.fi/reseptihaku/
-  Description: Valion reseptikokoelma
-
-- Name: HK reseptit
-  URL: https://www.hk.fi/reseptit/
-  Description: HK:n reseptikokoelma
-
-- Name: Valio kotiruokasuosikit
-  URL: https://www.valio.fi/ruoka/arkiruoka/suomalaisten-kotiruokasuosikit/
-  Description: Suomalaisten suosikkiruoat
-
-- Name: Arla arkiruoka
  
 Body EN: Recipe websites offer cooking instructions for different situations and needs.
 
