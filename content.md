@@ -1190,7 +1190,6 @@ Type: link
 Main Tag: ruoka, arki
 Tags: resurssit
 PDF: true
-Hide: true
 ID: reseptisivut
 Description FI: Suomalaisia reseptisivustoja arkeen ja juhlaan.
 Description EN: Finnish recipe websites for everyday and festive cooking.
