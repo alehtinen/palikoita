@@ -523,6 +523,9 @@ function parseMarkdownContent(markdown) {
             } else if (trimmedLine.startsWith('PDF: ')) {
                 const pdfValue = trimmedLine.substring(5).trim().toLowerCase();
                 currentItem.downloadablePDF = pdfValue === 'true' || pdfValue === 'yes';
+            } else if (trimmedLine.startsWith('Hide: ')) {
+                const hideValue = trimmedLine.substring(6).trim().toLowerCase();
+                currentItem.hidden = hideValue === 'true' || hideValue === 'yes';
             } else if (trimmedLine.startsWith('Keywords: ')) {
                 // Keywords for search (bilingual) - Format: Keywords: FinnishKeywords | EnglishKeywords
                 // Each side can have comma-separated keywords
@@ -616,6 +619,67 @@ function parseMarkdownContent(markdown) {
     return { content, mainTagDefinitions, typeDefinitions, tagDefinitions };
 }
 
+// Load and parse words.md for search term suggestions
+async function loadWordsFromMarkdown() {
+    try {
+        const response = await fetch('words.md');
+        const markdown = await response.text();
+        return parseWordsContent(markdown);
+    } catch (error) {
+        if (typeof window !== 'undefined' && window.DEBUG_LOG) window.DEBUG_LOG('Error loading words.md', error);
+        return {};
+    }
+}
+
+function parseWordsContent(markdown) {
+    const lines = markdown.split('\n');
+    const categories = {};
+    let currentCategory = null;
+    
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmedLine = line.trim();
+        
+        // Category header: ## category_fi | category_en
+        if (trimmedLine.startsWith('## ')) {
+            const categoryLine = trimmedLine.substring(3).trim();
+            const parts = categoryLine.split('|').map(p => p.trim());
+            if (parts.length === 2) {
+                currentCategory = parts[0]; // Use Finnish name as key
+                categories[currentCategory] = {
+                    fi: parts[0],
+                    en: parts[1],
+                    examples: { fi: '', en: '' },
+                    words: []
+                };
+            }
+        }
+        // Examples line: Examples: example_fi | example_en
+        else if (trimmedLine.startsWith('Examples:') && currentCategory) {
+            const examplesLine = trimmedLine.substring(9).trim();
+            const parts = examplesLine.split('|').map(p => p.trim());
+            if (parts.length === 2) {
+                categories[currentCategory].examples = {
+                    fi: parts[0],
+                    en: parts[1]
+                };
+            }
+        }
+        // Word line: word_fi | word_en
+        else if (trimmedLine && !trimmedLine.startsWith('#') && !trimmedLine.startsWith('Examples:') && currentCategory && trimmedLine.includes('|')) {
+            const parts = trimmedLine.split('|').map(p => p.trim());
+            if (parts.length === 2) {
+                categories[currentCategory].words.push({
+                    fi: parts[0],
+                    en: parts[1]
+                });
+            }
+        }
+    }
+    
+    return categories;
+}
+
 // Parse link list - format: URL | Name | Description
 function parseLinkList(linkString) {
     return linkString.split(',').map(linkItem => {
@@ -643,6 +707,1121 @@ function parseLinkList(linkString) {
     });
 }
 
+// Global registry for scripts that need to be executed after DOM insertion
+window.customCodeBlockScripts = window.customCodeBlockScripts || {};
+
+// Function to execute pending scripts after HTML is inserted
+window.executeCustomCodeBlockScripts = function(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    // Find all elements with script data
+    const scriptContainers = container.querySelectorAll('[data-script-id]');
+    scriptContainers.forEach(function(el) {
+        const scriptId = el.getAttribute('data-script-id');
+        const scripts = window.customCodeBlockScripts[scriptId];
+        if (scripts) {
+            scripts.forEach(function(scriptData) {
+                const script = document.createElement('script');
+                if (scriptData.src) {
+                    script.src = scriptData.src;
+                }
+                if (scriptData.async) script.async = true;
+                if (scriptData.defer) script.defer = true;
+                if (scriptData.content) {
+                    script.textContent = scriptData.content;
+                }
+                el.appendChild(script);
+            });
+            delete window.customCodeBlockScripts[scriptId];
+        }
+    });
+};
+
+// Function to initialize search blocks after HTML is inserted
+window.initializeSearchBlocks = function(containerId, cardData) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    const searchBlocks = container.querySelectorAll('[data-search-block="true"]');
+    searchBlocks.forEach(function(block) {
+        // Get config from data attributes
+        const customUrls = JSON.parse(decodeURIComponent(block.getAttribute('data-custom-urls') || '[]'));
+        const sitesRule = block.getAttribute('data-sites-rule') || 'card';
+        const freeform = block.getAttribute('data-freeform') === 'true';
+        const hasCopy = block.getAttribute('data-has-copy') === 'true';
+        const includeWords = block.getAttribute('data-include-words') === 'true';
+        const excludeWords = block.getAttribute('data-exclude-words') === 'true';
+        const excludeLinks = block.getAttribute('data-exclude-links') === 'true';
+        const predefinedIncludeWords = JSON.parse(decodeURIComponent(block.getAttribute('data-inwords') || '[]'));
+        const predefinedExcludeWords = JSON.parse(decodeURIComponent(block.getAttribute('data-exwords') || '[]'));
+        const wordsCategories = JSON.parse(decodeURIComponent(block.getAttribute('data-words-categories') || '[]'));
+        const termsCategories = JSON.parse(decodeURIComponent(block.getAttribute('data-terms-categories') || '[]'));
+        
+        // Collect sites based on SITES rule
+        const sites = collectSitesForSearch(sitesRule, cardData);
+        
+        // Add custom URLs
+        customUrls.forEach(url => {
+            const domain = extractDomain(url);
+            if (domain && !sites.some(s => s.domain === domain)) {
+                sites.push({ domain: domain, name: domain });
+            }
+        });
+        
+        // Build search interface HTML
+        const searchHtml = buildSearchInterface(block.id, sites, freeform, hasCopy, includeWords, excludeWords, excludeLinks, wordsCategories, termsCategories);
+        
+        // Insert into content div
+        const contentDiv = block.querySelector('.search-block-content');
+        if (contentDiv) {
+            contentDiv.innerHTML = searchHtml;
+            
+            // Initialize event handlers
+            initializeSearchHandlers(block.id, sites, freeform, includeWords, excludeWords, excludeLinks, predefinedIncludeWords, predefinedExcludeWords, wordsCategories, termsCategories);
+        }
+    });
+};
+
+// Helper function to collect sites based on SITES rule
+function collectSitesForSearch(sitesRule, cardData) {
+    const sites = [];
+    
+    if (!window.contentData || !Array.isArray(window.contentData)) {
+        return sites;
+    }
+    
+    switch(sitesRule) {
+        case 'all':
+            // Collect from all cards
+            window.contentData.forEach(item => {
+                extractSitesFromCard(item, sites);
+            });
+            break;
+            
+        case 'category':
+            // Collect from cards with same main tag
+            if (cardData && cardData.mainTag) {
+                window.contentData.forEach(item => {
+                    if (item.mainTag === cardData.mainTag) {
+                        extractSitesFromCard(item, sites);
+                    }
+                });
+            }
+            break;
+            
+        case 'tag':
+            // Collect from cards with overlapping tags
+            if (cardData && cardData.tags) {
+                const cardTags = Array.isArray(cardData.tags) ? cardData.tags : cardData.tags.split(',').map(t => t.trim());
+                window.contentData.forEach(item => {
+                    const itemTags = Array.isArray(item.tags) ? item.tags : (item.tags || '').split(',').map(t => t.trim());
+                    if (cardTags.some(tag => itemTags.includes(tag))) {
+                        extractSitesFromCard(item, sites);
+                    }
+                });
+            }
+            break;
+            
+        case 'keywords':
+            // Collect from cards with overlapping keywords
+            if (cardData && cardData.keywords) {
+                const cardKeywords = cardData.keywords.split(',').map(k => k.trim().toLowerCase());
+                window.contentData.forEach(item => {
+                    if (item.keywords) {
+                        const itemKeywords = item.keywords.split(',').map(k => k.trim().toLowerCase());
+                        if (cardKeywords.some(kw => itemKeywords.includes(kw))) {
+                            extractSitesFromCard(item, sites);
+                        }
+                    }
+                });
+            }
+            break;
+            
+        case 'card':
+        default:
+            // Only from current card
+            if (cardData) {
+                extractSitesFromCard(cardData, sites);
+            }
+            break;
+    }
+    
+    return sites;
+}
+
+// Helper to extract sites from a card's links
+function extractSitesFromCard(card, sites) {
+    if (!card.linkSections || !Array.isArray(card.linkSections)) {
+        return;
+    }
+    
+    card.linkSections.forEach(section => {
+        if (section.links && Array.isArray(section.links)) {
+            section.links.forEach(link => {
+                if (link.url) {
+                    // Handle multilingual URLs (object with fi/en) or plain strings
+                    const url = typeof link.url === 'object' ? (link.url.fi || link.url.en) : link.url;
+                    const domain = extractDomain(url);
+                    if (domain && !sites.some(s => s.domain === domain)) {
+                        // Handle multilingual names
+                        const name = typeof link.name === 'object' ? (link.name.fi || link.name.en) : link.name;
+                        sites.push({
+                            domain: domain,
+                            name: name || domain
+                        });
+                    }
+                }
+            });
+        }
+    });
+}
+
+// Helper to extract domain from URL
+function extractDomain(url) {
+    try {
+        // Add protocol if missing
+        const urlWithProtocol = url.startsWith('http') ? url : 'https://' + url;
+        const urlObj = new URL(urlWithProtocol);
+        return urlObj.hostname.replace(/^www\./, '');
+    } catch (e) {
+        // If it's just a domain, return as is
+        return url.replace(/^www\./, '').split('/')[0];
+    }
+}
+
+// Helper to collect words from categories
+function collectWordsFromCategories(categories, lang) {
+    if (!window.wordsData || !categories || categories.length === 0) return { words: [], examples: '' };
+    
+    const words = [];
+    let exampleText = '';
+    
+    categories.forEach(categoryName => {
+        const category = window.wordsData[categoryName];
+        if (category) {
+            // Collect example from first category that has one
+            if (!exampleText && category.examples) {
+                exampleText = lang === 'en' ? category.examples.en : category.examples.fi;
+            }
+            
+            // Collect words
+            if (category.words) {
+                category.words.forEach(word => {
+                    const text = lang === 'en' ? word.en : word.fi;
+                    if (text && !words.includes(text)) {
+                        words.push(text);
+                    }
+                });
+            }
+        }
+    });
+    
+    return { words, examples: exampleText };
+}
+
+// Build search interface HTML
+function buildSearchInterface(blockId, sites, freeform, hasCopy, includeWords, excludeWords, excludeLinks, wordsCategories, termsCategories) {
+    const searchId = blockId + '-search';
+    const engineId = blockId + '-engine';
+    const sitesId = blockId + '-sites';
+    const excludeSitesTagsId = blockId + '-exclude-sites-tags';
+    const excludeSitesInputId = blockId + '-exclude-sites-input';
+    const aiId = blockId + '-ai';
+    const tagsId = blockId + '-tags';
+    const freeformId = blockId + '-freeform';
+    const selectAllId = blockId + '-selectall';
+    const includeWordsTagsId = blockId + '-include-words-tags';
+    const includeWordsInputId = blockId + '-include-words-input';
+    const excludeWordsTagsId = blockId + '-exclude-words-tags';
+    const excludeWordsInputId = blockId + '-exclude-words-input';
+    
+    // Get current language
+    const currentLang = localStorage.getItem('preferredLanguage') || 'fi';
+    
+    // Collect words for autocomplete
+    // WORDS: affects all fields, TERMS: affects only search and exclude
+    const allFieldsData = collectWordsFromCategories(wordsCategories, currentLang);
+    const searchExcludeData = collectWordsFromCategories(termsCategories, currentLang);
+    
+    const allFieldsWords = allFieldsData.words;
+    const searchExcludeWords = searchExcludeData.words;
+    const searchTermsWords = [...new Set([...allFieldsWords, ...searchExcludeWords])];
+    const includeWordsWords = allFieldsWords;
+    const excludeWordsWords = searchTermsWords;
+    
+    // Collect exclude links if EXLINKS is enabled
+    let excludeLinksWords = [];
+    if (excludeLinks && window.wordsData && window.wordsData['Links to exclude']) {
+        const linksCategory = window.wordsData['Links to exclude'];
+        excludeLinksWords = linksCategory.words.map(w => currentLang === 'fi' ? w.fi : w.en);
+    }
+    
+    // Determine placeholders - prefer TERMS examples for search/exclude, WORDS examples for include
+    const searchPlaceholder = searchExcludeData.examples || allFieldsData.examples || 'esim. resepti, ohje...';
+    const includePlaceholder = allFieldsData.examples || 'esim. resepti';
+    const excludePlaceholder = searchExcludeData.examples || allFieldsData.examples || 'esim. mainos';
+    const excludeLinkPlaceholder = excludeLinks && window.wordsData && window.wordsData['Links to exclude'] 
+        ? (window.wordsData['Links to exclude'].examples[currentLang] || 'esim. pinterest.com')
+        : 'esim. pinterest.com';
+    
+    let html = '<div class="space-y-4">';
+    
+    // Search input
+    html += '<div>';
+    html += '<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Hakusanat</label>';
+    html += `<input type="text" id="${searchId}" data-datalist-id="${blockId}-search-words" placeholder="${searchPlaceholder}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent">`;
+    if (searchTermsWords.length > 0) {
+        html += `<datalist id="${blockId}-search-words">`;
+        searchTermsWords.forEach(word => {
+            html += `<option value="${word}">`;
+        });
+        html += '</datalist>';
+    }
+    html += '</div>';
+    
+    // Search engine selector
+    html += '<div>';
+    html += '<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Hakukone</label>';
+    html += `<select id="${engineId}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">`;
+    html += '<option value="google">Google</option>';
+    html += '<option value="duckduckgo">DuckDuckGo</option>';
+    html += '<option value="bing">Bing</option>';
+    html += '<option value="ecosia">Ecosia</option>';
+    html += '<option value="yahoo">Yahoo</option>';
+    html += '<option value="qwant">Qwant</option>';
+    html += '<option value="brave">Brave</option>';
+    html += '</select>';
+    html += '</div>';
+    
+    // Sites selector
+    if (sites.length > 0 && !freeform) {
+        html += '<div>';
+        html += '<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Hae vain näiltä sivustoilta</label>';
+        
+        // Select all
+        html += '<div class="mb-2">';
+        html += `<label class="flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 p-2 rounded cursor-pointer">`;
+        html += `<input type="checkbox" id="${selectAllId}" class="rounded text-blue-600">`;
+        html += '<span>Valitse kaikki sivustot</span>';
+        html += '</label>';
+        html += '</div>';
+        
+        // Sites checkboxes
+        html += `<div id="${sitesId}" class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gray-50 dark:bg-gray-800/50">`;
+        sites.forEach(site => {
+            html += `<label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 p-1 rounded cursor-pointer">`;
+            html += `<input type="checkbox" value="${site.domain}" class="site-checkbox rounded text-blue-600">`;
+            html += `<span title="${site.domain}">${site.name}</span>`;
+            html += '</label>';
+        });
+        html += '</div>';
+        html += '</div>';
+    }
+    
+    // Freeform site input  
+    if (freeform) {
+        html += '<div>';
+        html += '<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Lisää sivustoja</label>';
+        html += `<div class="relative">`;
+        html += `<div id="${tagsId}" class="flex flex-wrap gap-2 mb-2 empty:mb-0 empty:hidden"></div>`;
+        html += `<input type="text" id="${freeformId}" data-datalist="${blockId}-datalist" placeholder="Kirjoita domain, paina Enter tai pilkku" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent">`;
+        
+        // Datalist for autocomplete
+        html += `<datalist id="${blockId}-datalist">`;
+        sites.forEach(site => {
+            html += `<option value="${site.domain}"></option>`;
+        });
+        html += '</datalist>';
+        html += '</div>';
+        html += '</div>';
+    }
+    
+    // Include words (optional)
+    if (includeWords) {
+        html += '<div>';
+        html += '<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Sanat jotka PITÄÄ olla tuloksissa</label>';
+        html += `<div id="${includeWordsTagsId}" class="flex flex-wrap gap-2 mb-2 empty:mb-0 empty:hidden"></div>`;
+        html += `<input type="text" id="${includeWordsInputId}" data-datalist-id="${blockId}-include-words" placeholder="${includePlaceholder}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent">`;
+        if (includeWordsWords.length > 0) {
+            html += `<datalist id="${blockId}-include-words">`;
+            includeWordsWords.forEach(word => {
+                html += `<option value="${word}">`;
+            });
+            html += '</datalist>';
+        }
+        html += '<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Hakutuloksissa on oltava kaikki nämä sanat (Google: "sana")</p>';
+        html += '</div>';
+    }
+    
+    // Exclude words (optional)
+    if (excludeWords) {
+        html += '<div>';
+        html += '<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Sanat joita EI saa olla tuloksissa</label>';
+        html += `<div id="${excludeWordsTagsId}" class="flex flex-wrap gap-2 mb-2 empty:mb-0 empty:hidden"></div>`;
+        html += `<input type="text" id="${excludeWordsInputId}" data-datalist-id="${blockId}-exclude-words" placeholder="${excludePlaceholder}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent">`;
+        if (excludeWordsWords.length > 0) {
+            html += `<datalist id="${blockId}-exclude-words">`;
+            excludeWordsWords.forEach(word => {
+                html += `<option value="${word}">`;
+            });
+            html += '</datalist>';
+        }
+        html += '<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Hakutuloksissa ei saa olla näitä sanoja (Google: -sana)</p>';
+        html += '</div>';
+    }
+    
+    // Exclude sites
+    html += '<div>';
+    html += '<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Sulje pois sivustot</label>';
+    html += `<div id="${excludeSitesTagsId}" class="flex flex-wrap gap-2 mb-2 empty:mb-0 empty:hidden"></div>`;
+    html += `<input type="text" id="${excludeSitesInputId}" ${excludeLinks && excludeLinksWords.length > 0 ? `data-datalist-id="${blockId}-exclude-links"` : ''} placeholder="${excludeLinks ? excludeLinkPlaceholder : 'Kirjoita domain, paina Enter tai pilkku'}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent">`;
+    if (excludeLinks && excludeLinksWords.length > 0) {
+        html += `<datalist id="${blockId}-exclude-links">`;
+        excludeLinksWords.forEach(link => {
+            html += `<option value="${link}">`;
+        });
+        html += '</datalist>';
+    }
+    html += '<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Ilman https:// tai www</p>';
+    html += '</div>';
+    
+    // Exclude AI
+    html += '<div>';
+    html += '<label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">';
+    html += `<input type="checkbox" id="${aiId}" class="rounded text-blue-600">`;
+    html += '<span>Sulje pois AI-generoidut tulokset</span>';
+    html += '</label>';
+    html += '</div>';
+    
+    // Search and Copy buttons
+    html += '<div class="flex gap-2">';
+    html += `<button onclick="window['executeSearch_${blockId}']()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">`;
+    html += '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>';
+    html += 'Hae';
+    html += '</button>';
+    
+    if (hasCopy) {
+        html += `<button onclick="window['copySearch_${blockId}']()" class="px-4 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 font-semibold rounded-lg transition-colors" title="Kopioi haku">`;
+        html += '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>';
+        html += '</button>';
+    }
+    
+    html += '</div>';
+    html += '</div>';
+    
+    return html;
+}
+
+// Initialize search block event handlers
+function initializeSearchHandlers(blockId, sites, freeform, includeWords, excludeWords, excludeLinks, predefinedIncludeWords, predefinedExcludeWords, wordsCategories, termsCategories) {
+    const searchId = blockId + '-search';
+    const engineId = blockId + '-engine';
+    const sitesId = blockId + '-sites';
+    const excludeSitesTagsId = blockId + '-exclude-sites-tags';
+    const excludeSitesInputId = blockId + '-exclude-sites-input';
+    const aiId = blockId + '-ai';
+    const tagsId = blockId + '-tags';
+    const freeformId = blockId + '-freeform';
+    const selectAllId = blockId + '-selectall';
+    const includeWordsTagsId = blockId + '-include-words-tags';
+    const includeWordsInputId = blockId + '-include-words-input';
+    const excludeWordsTagsId = blockId + '-exclude-words-tags';
+    const excludeWordsInputId = blockId + '-exclude-words-input';
+    
+    // Tag arrays
+    const freeformTags = [];
+    const excludeSitesTags = [];
+    const includeWordsTags = [...predefinedIncludeWords];
+    const excludeWordsTags = [...predefinedExcludeWords];
+    
+    // Helper function to add autocomplete that shows after 2+ characters
+    function addAutocomplete(inputEl, excludeArray) {
+        if (!inputEl) return;
+        const datalistId = inputEl.getAttribute('data-datalist-id');
+        if (!datalistId) return;
+        const datalistEl = document.getElementById(datalistId);
+        if (!datalistEl) return;
+        
+        // Store original options
+        const originalOptions = Array.from(datalistEl.querySelectorAll('option')).map(opt => opt.value);
+        
+        inputEl.addEventListener('input', function() {
+            const value = this.value.trim();
+            
+            // Filter out already-added words from suggestions
+            if (excludeArray && datalistEl) {
+                datalistEl.innerHTML = '';
+                originalOptions.forEach(optValue => {
+                    if (!excludeArray.includes(optValue)) {
+                        const option = document.createElement('option');
+                        option.value = optValue;
+                        datalistEl.appendChild(option);
+                    }
+                });
+            }
+            
+            // Show autocomplete when 2+ characters typed
+            if (value.length >= 2) {
+                this.setAttribute('list', datalistId);
+            } else {
+                this.removeAttribute('list');
+            }
+        });
+    }
+    
+    // Add autocomplete to word suggestion inputs (not search terms)
+    addAutocomplete(document.getElementById(includeWordsInputId), includeWordsTags);
+    addAutocomplete(document.getElementById(excludeWordsInputId), excludeWordsTags);
+    addAutocomplete(document.getElementById(excludeSitesInputId), excludeSitesTags);
+    
+    // Add Enter key handler to search input (no autocomplete)
+    const searchInput = document.getElementById(searchId);
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                window[`executeSearch_${blockId}`]();
+            }
+        });
+    }
+    
+    // Select all handler
+    const selectAllEl = document.getElementById(selectAllId);
+    if (selectAllEl) {
+        selectAllEl.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll(`#${sitesId} .site-checkbox`);
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+        
+        // Update select all when individual boxes change
+        const checkboxes = document.querySelectorAll(`#${sitesId} .site-checkbox`);
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                const allChecked = Array.from(checkboxes).every(c => c.checked);
+                selectAllEl.checked = allChecked;
+            });
+        });
+    }
+    
+    // Freeform input handler
+    if (freeform) {
+        const freeformInput = document.getElementById(freeformId);
+        const tagsContainer = document.getElementById(tagsId);
+        const datalistId = blockId + '-datalist';
+        const datalistEl = document.getElementById(datalistId);
+        
+        if (freeformInput && tagsContainer && datalistEl) {
+            // Track last typed value to detect datalist selection
+            let lastTypedValue = '';
+            
+            // Auto-add when datalist option selected (by click or arrow+enter)
+            freeformInput.addEventListener('input', function() {
+                const value = this.value.trim();
+                
+                // Show autocomplete only after 2+ characters
+                if (value.length >= 2) {
+                    this.setAttribute('list', datalistId);
+                } else {
+                    this.removeAttribute('list');
+                }
+                
+                const options = Array.from(datalistEl.querySelectorAll('option')).map(opt => opt.value);
+                
+                // If value exactly matches an option and is different from what user typed
+                if (value && options.includes(value) && value !== lastTypedValue) {
+                    // This was a selection from datalist
+                    if (!freeformTags.includes(value)) {
+                        freeformTags.push(value);
+                        addTag(value, tagsContainer, freeformTags);
+                        this.value = '';
+                        this.removeAttribute('list');
+                        lastTypedValue = '';
+                    }
+                } else {
+                    lastTypedValue = value;
+                }
+            });
+            
+            freeformInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    const value = this.value.trim().replace(/,$/g, '');
+                    if (value && !freeformTags.includes(value)) {
+                        freeformTags.push(value);
+                        addTag(value, tagsContainer, freeformTags);
+                        this.value = '';
+                        this.removeAttribute('list');
+                        lastTypedValue = '';
+                    }
+                } else if (e.key === 'Tab' && this.value.trim()) {
+                    const value = this.value.trim();
+                    const options = Array.from(datalistEl.querySelectorAll('option')).map(opt => opt.value);
+                    
+                    // If value exactly matches an option (arrow-selected)
+                    if (options.includes(value)) {
+                        e.preventDefault();
+                        if (!freeformTags.includes(value)) {
+                            freeformTags.push(value);
+                            addTag(value, tagsContainer, freeformTags);
+                            this.value = '';
+                            this.removeAttribute('list');
+                            lastTypedValue = '';
+                        }
+                    }
+                    // If value partially matches exactly ONE option
+                    else if (options.length > 0) {
+                        const matches = options.filter(opt => opt.toLowerCase().startsWith(value.toLowerCase()));
+                        if (matches.length === 1) {
+                            e.preventDefault();
+                            if (!freeformTags.includes(matches[0])) {
+                                freeformTags.push(matches[0]);
+                                addTag(matches[0], tagsContainer, freeformTags);
+                                this.value = '';
+                                this.removeAttribute('list');
+                                lastTypedValue = '';
+                            }
+                        } else {
+                            // No match or multiple matches - add as-is
+                            e.preventDefault();
+                            if (!freeformTags.includes(value)) {
+                                freeformTags.push(value);
+                                addTag(value, tagsContainer, freeformTags);
+                                this.value = '';
+                                this.removeAttribute('list');
+                                lastTypedValue = '';
+                            }
+                        }
+                    } else {
+                        // No options at all - add as-is
+                        e.preventDefault();
+                        if (!freeformTags.includes(value)) {
+                            freeformTags.push(value);
+                            addTag(value, tagsContainer, freeformTags);
+                            this.value = '';
+                            this.removeAttribute('list');
+                            lastTypedValue = '';
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    // Exclude sites input handler
+    const excludeSitesInput = document.getElementById(excludeSitesInputId);
+    const excludeSitesTagsContainer = document.getElementById(excludeSitesTagsId);
+    if (excludeSitesInput && excludeSitesTagsContainer) {
+        const datalistId = excludeSitesInput.getAttribute('data-datalist-id');
+        const datalistEl = datalistId ? document.getElementById(datalistId) : null;
+        
+        // Track last typed value to detect datalist selection
+        let lastTypedValue = '';
+        
+        // Auto-add when datalist option selected (by click or arrow+enter)
+        if (datalistEl) {
+            excludeSitesInput.addEventListener('input', function() {
+                const value = this.value.trim();
+                const options = Array.from(datalistEl.querySelectorAll('option')).map(opt => opt.value);
+                
+                // If value exactly matches an option and is different from what user typed
+                if (value && options.includes(value) && value !== lastTypedValue) {
+                    // This was a selection from datalist
+                    if (!excludeSitesTags.includes(value)) {
+                        excludeSitesTags.push(value);
+                        addTag(value, excludeSitesTagsContainer, excludeSitesTags);
+                        this.value = '';
+                        this.removeAttribute('list');
+                        lastTypedValue = '';
+                    }
+                } else {
+                    lastTypedValue = value;
+                }
+            });
+        }
+        
+        excludeSitesInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                const value = this.value.trim().replace(/,$/g, '');
+                if (value && !excludeSitesTags.includes(value)) {
+                    excludeSitesTags.push(value);
+                    addTag(value, excludeSitesTagsContainer, excludeSitesTags);
+                    this.value = '';
+                    this.removeAttribute('list');
+                    lastTypedValue = '';
+                }
+            } else if (e.key === 'Tab' && this.value.trim()) {
+                const value = this.value.trim();
+                
+                if (datalistEl) {
+                    const options = Array.from(datalistEl.querySelectorAll('option')).map(opt => opt.value);
+                    
+                    // If value exactly matches an option (arrow-selected)
+                    if (options.includes(value)) {
+                        e.preventDefault();
+                        if (!excludeSitesTags.includes(value)) {
+                            excludeSitesTags.push(value);
+                            addTag(value, excludeSitesTagsContainer, excludeSitesTags);
+                            this.value = '';
+                            this.removeAttribute('list');
+                            lastTypedValue = '';
+                        }
+                    }
+                    // If value partially matches exactly ONE option
+                    else if (options.length > 0) {
+                        const matches = options.filter(opt => opt.toLowerCase().startsWith(value.toLowerCase()));
+                        if (matches.length === 1) {
+                            e.preventDefault();
+                            if (!excludeSitesTags.includes(matches[0])) {
+                                excludeSitesTags.push(matches[0]);
+                                addTag(matches[0], excludeSitesTagsContainer, excludeSitesTags);
+                                this.value = '';
+                                this.removeAttribute('list');
+                                lastTypedValue = '';
+                            }
+                        } else {
+                            // No match or multiple matches - add as-is
+                            e.preventDefault();
+                            if (!excludeSitesTags.includes(value)) {
+                                excludeSitesTags.push(value);
+                                addTag(value, excludeSitesTagsContainer, excludeSitesTags);
+                                this.value = '';
+                                this.removeAttribute('list');
+                                lastTypedValue = '';
+                            }
+                        }
+                    } else {
+                        // No options - add as-is
+                        e.preventDefault();
+                        if (!excludeSitesTags.includes(value)) {
+                            excludeSitesTags.push(value);
+                            addTag(value, excludeSitesTagsContainer, excludeSitesTags);
+                            this.value = '';
+                            this.removeAttribute('list');
+                            lastTypedValue = '';
+                        }
+                    }
+                } else {
+                    // No datalist - add as-is
+                    e.preventDefault();
+                    if (!excludeSitesTags.includes(value)) {
+                        excludeSitesTags.push(value);
+                        addTag(value, excludeSitesTagsContainer, excludeSitesTags);
+                        this.value = '';
+                        lastTypedValue = '';
+                    }
+                }
+            }
+        });
+    }
+    
+    // Include words input handler
+    if (includeWords) {
+        const includeWordsInput = document.getElementById(includeWordsInputId);
+        const includeWordsTagsContainer = document.getElementById(includeWordsTagsId);
+        if (includeWordsInput && includeWordsTagsContainer) {
+            // Initialize with predefined words
+            predefinedIncludeWords.forEach(word => {
+                addTag(word, includeWordsTagsContainer, includeWordsTags);
+            });
+            
+            const datalistId = includeWordsInput.getAttribute('data-datalist-id');
+            const datalistEl = datalistId ? document.getElementById(datalistId) : null;
+            
+            // Track last typed value to detect datalist selection
+            let lastTypedValue = '';
+            
+            // Auto-add when datalist option selected (by click or arrow+enter)
+            if (datalistEl) {
+                includeWordsInput.addEventListener('input', function() {
+                    const value = this.value.trim();
+                    const options = Array.from(datalistEl.querySelectorAll('option')).map(opt => opt.value);
+                    
+                    // If value exactly matches an option and is different from what user typed
+                    if (value && options.includes(value) && value !== lastTypedValue) {
+                        // This was a selection from datalist
+                        if (!includeWordsTags.includes(value)) {
+                            includeWordsTags.push(value);
+                            addTag(value, includeWordsTagsContainer, includeWordsTags);
+                            this.value = '';
+                            this.removeAttribute('list');
+                            lastTypedValue = '';
+                        }
+                    } else {
+                        lastTypedValue = value;
+                    }
+                });
+            }
+            
+            includeWordsInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    const value = this.value.trim().replace(/,$/g, '');
+                    if (value && !includeWordsTags.includes(value)) {
+                        includeWordsTags.push(value);
+                        addTag(value, includeWordsTagsContainer, includeWordsTags);
+                        this.value = '';
+                        this.removeAttribute('list');
+                        lastTypedValue = '';
+                    }
+                } else if (e.key === 'Tab' && this.value.trim()) {
+                    const value = this.value.trim();
+                    
+                    if (datalistEl) {
+                        const options = Array.from(datalistEl.querySelectorAll('option')).map(opt => opt.value);
+                        
+                        // If value exactly matches an option (arrow-selected)
+                        if (options.includes(value)) {
+                            e.preventDefault();
+                            if (!includeWordsTags.includes(value)) {
+                                includeWordsTags.push(value);
+                                addTag(value, includeWordsTagsContainer, includeWordsTags);
+                                this.value = '';
+                                this.removeAttribute('list');
+                                lastTypedValue = '';
+                            }
+                        }
+                        // If value partially matches exactly ONE option
+                        else if (options.length > 0) {
+                            const matches = options.filter(opt => opt.toLowerCase().startsWith(value.toLowerCase()));
+                            if (matches.length === 1) {
+                                e.preventDefault();
+                                if (!includeWordsTags.includes(matches[0])) {
+                                    includeWordsTags.push(matches[0]);
+                                    addTag(matches[0], includeWordsTagsContainer, includeWordsTags);
+                                    this.value = '';
+                                    this.removeAttribute('list');
+                                    lastTypedValue = '';
+                                }
+                            } else {
+                                // No match or multiple matches - add as-is
+                                e.preventDefault();
+                                if (!includeWordsTags.includes(value)) {
+                                    includeWordsTags.push(value);
+                                    addTag(value, includeWordsTagsContainer, includeWordsTags);
+                                    this.value = '';
+                                    this.removeAttribute('list');
+                                    lastTypedValue = '';
+                                }
+                            }
+                        } else {
+                            // No options - add as-is
+                            e.preventDefault();
+                            if (!includeWordsTags.includes(value)) {
+                                includeWordsTags.push(value);
+                                addTag(value, includeWordsTagsContainer, includeWordsTags);
+                                this.value = '';
+                                this.removeAttribute('list');
+                                lastTypedValue = '';
+                            }
+                        }
+                    } else {
+                        // No datalist - add as-is
+                        e.preventDefault();
+                        if (!includeWordsTags.includes(value)) {
+                            includeWordsTags.push(value);
+                            addTag(value, includeWordsTagsContainer, includeWordsTags);
+                            this.value = '';
+                            lastTypedValue = '';
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    // Exclude words input handler
+    if (excludeWords) {
+        const excludeWordsInput = document.getElementById(excludeWordsInputId);
+        const excludeWordsTagsContainer = document.getElementById(excludeWordsTagsId);
+        if (excludeWordsInput && excludeWordsTagsContainer) {
+            // Initialize with predefined words
+            predefinedExcludeWords.forEach(word => {
+                addTag(word, excludeWordsTagsContainer, excludeWordsTags);
+            });
+            
+            const datalistId = excludeWordsInput.getAttribute('data-datalist-id');
+            const datalistEl = datalistId ? document.getElementById(datalistId) : null;
+            
+            // Track last typed value to detect datalist selection
+            let lastTypedValue = '';
+            
+            // Auto-add when datalist option selected (by click or arrow+enter)
+            if (datalistEl) {
+                excludeWordsInput.addEventListener('input', function() {
+                    const value = this.value.trim();
+                    const options = Array.from(datalistEl.querySelectorAll('option')).map(opt => opt.value);
+                    
+                    // If value exactly matches an option and is different from what user typed
+                    if (value && options.includes(value) && value !== lastTypedValue) {
+                        // This was a selection from datalist
+                        if (!excludeWordsTags.includes(value)) {
+                            excludeWordsTags.push(value);
+                            addTag(value, excludeWordsTagsContainer, excludeWordsTags);
+                            this.value = '';
+                            this.removeAttribute('list');
+                            lastTypedValue = '';
+                        }
+                    } else {
+                        lastTypedValue = value;
+                    }
+                });
+            }
+            
+            excludeWordsInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    const value = this.value.trim().replace(/,$/g, '');
+                    if (value && !excludeWordsTags.includes(value)) {
+                        excludeWordsTags.push(value);
+                        addTag(value, excludeWordsTagsContainer, excludeWordsTags);
+                        this.value = '';
+                        this.removeAttribute('list');
+                        lastTypedValue = '';
+                    }
+                } else if (e.key === 'Tab' && this.value.trim()) {
+                    const value = this.value.trim();
+                    
+                    if (datalistEl) {
+                        const options = Array.from(datalistEl.querySelectorAll('option')).map(opt => opt.value);
+                        
+                        // If value exactly matches an option (arrow-selected)
+                        if (options.includes(value)) {
+                            e.preventDefault();
+                            if (!excludeWordsTags.includes(value)) {
+                                excludeWordsTags.push(value);
+                                addTag(value, excludeWordsTagsContainer, excludeWordsTags);
+                                this.value = '';
+                                this.removeAttribute('list');
+                                lastTypedValue = '';
+                            }
+                        }
+                        // If value partially matches exactly ONE option
+                        else if (options.length > 0) {
+                            const matches = options.filter(opt => opt.toLowerCase().startsWith(value.toLowerCase()));
+                            if (matches.length === 1) {
+                                e.preventDefault();
+                                if (!excludeWordsTags.includes(matches[0])) {
+                                    excludeWordsTags.push(matches[0]);
+                                    addTag(matches[0], excludeWordsTagsContainer, excludeWordsTags);
+                                    this.value = '';
+                                    this.removeAttribute('list');
+                                    lastTypedValue = '';
+                                }
+                            } else {
+                                // No match or multiple matches - add as-is
+                                e.preventDefault();
+                                if (!excludeWordsTags.includes(value)) {
+                                    excludeWordsTags.push(value);
+                                    addTag(value, excludeWordsTagsContainer, excludeWordsTags);
+                                    this.value = '';
+                                    this.removeAttribute('list');
+                                    lastTypedValue = '';
+                                }
+                            }
+                        } else {
+                            // No options - add as-is
+                            e.preventDefault();
+                            if (!excludeWordsTags.includes(value)) {
+                                excludeWordsTags.push(value);
+                                addTag(value, excludeWordsTagsContainer, excludeWordsTags);
+                                this.value = '';
+                                this.removeAttribute('list');
+                                lastTypedValue = '';
+                            }
+                        }
+                    } else {
+                        // No datalist - add as-is
+                        e.preventDefault();
+                        if (!excludeWordsTags.includes(value)) {
+                            excludeWordsTags.push(value);
+                            addTag(value, excludeWordsTagsContainer, excludeWordsTags);
+                            this.value = '';
+                            lastTypedValue = '';
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    // Search function
+    window[`executeSearch_${blockId}`] = function() {
+        const searchTerms = document.getElementById(searchId).value.trim();
+        if (!searchTerms) {
+            alert('Syötä hakusanat ensin!');
+            return;
+        }
+        
+        const engine = document.getElementById(engineId).value;
+        let queryParts = [];
+        
+        // Process search terms and include words intelligently
+        const searchWords = searchTerms.split(/\s+/).filter(w => w);
+        const wordsToQuote = new Set(); // Words that need quotes
+        const wordsNoQuote = []; // Words without quotes
+        
+        searchWords.forEach(word => {
+            if (includeWordsTags.includes(word)) {
+                wordsToQuote.add(word); // Will be quoted
+            } else {
+                wordsNoQuote.push(word); // Regular search term
+            }
+        });
+        
+        // Add include words that aren't in search terms
+        includeWordsTags.forEach(word => {
+            if (!searchWords.includes(word)) {
+                wordsToQuote.add(word);
+            }
+        });
+        
+        // Build query: unquoted words first, then quoted words
+        if (wordsNoQuote.length > 0) {
+            queryParts.push(wordsNoQuote.join(' '));
+        }
+        wordsToQuote.forEach(word => {
+            queryParts.push(`"${word}"`);
+        });
+        
+        // Collect selected sites
+        const selectedSites = Array.from(document.querySelectorAll(`#${sitesId} .site-checkbox:checked`)).map(cb => cb.value);
+        
+        // Add freeform tags
+        const allSites = [...selectedSites, ...freeformTags];
+        
+        if (allSites.length > 0) {
+            if (engine === 'qwant') {
+                queryParts.push(allSites.length === 1 ? `site:${allSites[0]}` : `site:(${allSites.join(' OR ')})`);
+            } else if (engine === 'brave') {
+                const limited = allSites.slice(0, 5);
+                queryParts.push(limited.length === 1 ? `site:${limited[0]}` : `(${limited.map(s => `site:${s}`).join(' OR ')})`);
+            } else {
+                queryParts.push(allSites.length === 1 ? `site:${allSites[0]}` : `(${allSites.map(s => `site:${s}`).join(' OR ')})`);
+            }
+        }
+        
+        // Exclude words (must not be in results)
+        excludeWordsTags.forEach(word => {
+            queryParts.push(`-${word}`);
+        });
+        
+        // Excluded sites
+        excludeSitesTags.forEach(site => {
+            queryParts.push(`-site:${site}`);
+        });
+        
+        // AI exclusion
+        if (document.getElementById(aiId).checked) {
+            queryParts.push('-ai');
+        }
+        
+        const query = queryParts.join(' ');
+        const urls = {
+            google: `https://www.google.com/search?q=${encodeURIComponent(query)}`,
+            duckduckgo: `https://duckduckgo.com/?q=${encodeURIComponent(query)}`,
+            bing: `https://www.bing.com/search?q=${encodeURIComponent(query)}`,
+            ecosia: `https://www.ecosia.org/search?q=${encodeURIComponent(query)}`,
+            yahoo: `https://search.yahoo.com/search?p=${encodeURIComponent(query)}`,
+            qwant: `https://www.qwant.com/?q=${encodeURIComponent(query)}`,
+            brave: `https://search.brave.com/search?q=${encodeURIComponent(query)}`
+        };
+        
+        window.open(urls[engine] || urls.google, '_blank');
+    };
+    
+    // Copy function
+    window[`copySearch_${blockId}`] = function() {
+        const searchTerms = document.getElementById(searchId).value.trim();
+        if (!searchTerms) {
+            alert('Ei kopioitavaa - syötä hakusanat ensin!');
+            return;
+        }
+        
+        const engine = document.getElementById(engineId).value;
+        let queryParts = [];
+        
+        // Process search terms and include words intelligently (same as executeSearch)
+        const searchWords = searchTerms.split(/\s+/).filter(w => w);
+        const wordsToQuote = new Set();
+        const wordsNoQuote = [];
+        
+        searchWords.forEach(word => {
+            if (includeWordsTags.includes(word)) {
+                wordsToQuote.add(word);
+            } else {
+                wordsNoQuote.push(word);
+            }
+        });
+        
+        includeWordsTags.forEach(word => {
+            if (!searchWords.includes(word)) {
+                wordsToQuote.add(word);
+            }
+        });
+        
+        if (wordsNoQuote.length > 0) {
+            queryParts.push(wordsNoQuote.join(' '));
+        }
+        wordsToQuote.forEach(word => {
+            queryParts.push(`"${word}"`);
+        });
+        
+        const selectedSites = Array.from(document.querySelectorAll(`#${sitesId} .site-checkbox:checked`)).map(cb => cb.value);
+        const allSites = [...selectedSites, ...freeformTags];
+        
+        if (allSites.length > 0) {
+            if (engine === 'qwant') {
+                queryParts.push(allSites.length === 1 ? `site:${allSites[0]}` : `site:(${allSites.join(' OR ')})`);
+            } else if (engine === 'brave') {
+                const limited = allSites.slice(0, 5);
+                queryParts.push(limited.length === 1 ? `site:${limited[0]}` : `(${limited.map(s => `site:${s}`).join(' OR ')})`);
+            } else {
+                queryParts.push(allSites.length === 1 ? `site:${allSites[0]}` : `(${allSites.map(s => `site:${s}`).join(' OR ')})`);
+            }
+        }
+        
+        excludeWordsTags.forEach(word => {
+            queryParts.push(`-${word}`);
+        });
+        
+        excludeSitesTags.forEach(site => {
+            queryParts.push(`-site:${site}`);
+        });
+        
+        if (document.getElementById(aiId).checked) {
+            queryParts.push('-ai');
+        }
+        
+        const query = queryParts.join(' ');
+        navigator.clipboard.writeText(query).then(() => {
+            alert('Haku kopioitu leikepöydälle!');
+        });
+    };
+}
+
+// Helper to add a tag chip
+function addTag(value, container, tagsArray) {
+    const tag = document.createElement('span');
+    tag.className = 'inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-sm';
+    tag.innerHTML = `${value}<button type="button" class="hover:text-blue-600 dark:hover:text-blue-300 font-bold ml-1">×</button>`;
+    
+    // Remove from array when tag is removed
+    tag.querySelector('button').addEventListener('click', function() {
+        const index = tagsArray.indexOf(value);
+        if (index > -1) tagsArray.splice(index, 1);
+        tag.remove();
+        // Show/hide container based on remaining tags
+        if (tagsArray.length === 0) {
+            container.classList.add('hidden');
+        }
+    });
+    
+    // Show container when adding tag
+    container.classList.remove('hidden');
+    container.appendChild(tag);
+}
+
 // Convert basic markdown to HTML
 function markdownToHtml(text) {
     if (!text) return '';
@@ -650,7 +1829,95 @@ function markdownToHtml(text) {
     let html = text;
     const customCodeBlocks = [];
     
-    // Process custom code blocks FIRST (before any other processing)
+    // Process custom search blocks FIRST (before code blocks)
+    // Pattern: >[!search]options Title\ncontent\n>[/search]
+    html = html.replace(/^>\[!search\]([^\n]*)\n([\s\S]*?)\n>\[\/search\]$/gm, function(match, header, content) {
+        // Parse header: options and title
+        const headerMatch = header.match(/^([a-z+]*)\s*(.*)$/);
+        const optionsStr = headerMatch ? headerMatch[1] : '';
+        const title = headerMatch ? headerMatch[2].trim() : header.trim();
+        const displayTitle = title || 'Haku';
+        
+        const options = optionsStr ? optionsStr.split('+').filter(o => o) : [];
+        const hasCopy = options.includes('copy');
+        const hasCollapsed = options.includes('collapsed');
+        
+        // Parse config from content
+        const lines = content.trim().split('\n');
+        let customUrls = [];
+        let sitesRule = 'card'; // default
+        let freeform = false;
+        let includeWords = false;
+        let excludeWords = false;
+        let excludeLinks = false; // Enable suggestions from "Links to exclude" category
+        let predefinedIncludeWords = [];
+        let predefinedExcludeWords = [];
+        let wordsCategories = []; // Categories for all fields
+        let termsCategories = []; // Categories for search terms and exclude words only
+        
+        lines.forEach(line => {
+            if (line.startsWith('>URLs:')) {
+                const urlsStr = line.substring(6).trim();
+                customUrls = urlsStr.split(',').map(u => u.trim()).filter(u => u);
+            } else if (line.startsWith('>SITES:')) {
+                sitesRule = line.substring(7).trim().toLowerCase();
+            } else if (line.startsWith('>FREEFORM:')) {
+                freeform = line.substring(10).trim().toLowerCase() === 'true';
+            } else if (line.startsWith('>INCLUDE:')) {
+                includeWords = line.substring(9).trim().toLowerCase() === 'true';
+            } else if (line.startsWith('>EXCLUDE:')) {
+                excludeWords = line.substring(9).trim().toLowerCase() === 'true';
+            } else if (line.startsWith('>INWORD:')) {
+                const wordsStr = line.substring(8).trim();
+                predefinedIncludeWords = wordsStr.split(',').map(w => w.trim()).filter(w => w);
+            } else if (line.startsWith('>EXWORD:')) {
+                const wordsStr = line.substring(8).trim();
+                predefinedExcludeWords = wordsStr.split(',').map(w => w.trim()).filter(w => w);
+            } else if (line.startsWith('>WORDS:')) {
+                const categoriesStr = line.substring(7).trim();
+                wordsCategories = categoriesStr.split(',').map(c => c.trim()).filter(c => c);
+            } else if (line.startsWith('>TERMS:')) {
+                const categoriesStr = line.substring(7).trim();
+                termsCategories = categoriesStr.split(',').map(c => c.trim()).filter(c => c);
+            } else if (line.startsWith('>EXLINKS:')) {
+                // EXLINKS: true means enable exclude site suggestions (uses "Links to exclude" category from words.md)
+                const value = line.substring(9).trim().toLowerCase();
+                excludeLinks = value === 'true';
+            }
+        });
+        
+        // Generate unique ID
+        const blockId = 'search-' + Math.random().toString(36).substr(2, 9);
+        
+        // Build HTML with data attributes for client-side initialization
+        let blockHtml = '<div class="my-4">';
+        
+        // Title header
+        if (displayTitle) {
+            blockHtml += '<div class="flex items-center justify-between mb-2">';
+            blockHtml += '<div class="flex items-center gap-2">';
+            if (hasCollapsed) {
+                blockHtml += `<svg class="collapse-icon w-4 h-4 transition-transform${hasCollapsed ? '' : ' rotate-90'} text-gray-700 dark:text-gray-300 cursor-pointer" fill="currentColor" viewBox="0 0 20 20" onclick="const el = document.getElementById('${blockId}'); el.classList.toggle('hidden'); this.classList.toggle('rotate-90')"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>`;
+            }
+            blockHtml += `<span class="text-sm font-semibold text-gray-700 dark:text-gray-300">${displayTitle}</span>`;
+            blockHtml += '</div></div>';
+        }
+        
+        // Content area - placeholder for client-side initialization
+        const bgColor = 'bg-purple-50 dark:bg-purple-900/20';
+        const borderColor = 'border-purple-500';
+        
+        blockHtml += `<div id="${blockId}" class="${hasCollapsed ? 'hidden' : ''} border-l-4 ${borderColor} ${bgColor} rounded-lg p-4" style="pointer-events: auto;" data-search-block="true" data-custom-urls="${encodeURIComponent(JSON.stringify(customUrls))}" data-sites-rule="${sitesRule}" data-freeform="${freeform}" data-has-copy="${hasCopy}" data-include-words="${includeWords}" data-exclude-words="${excludeWords}" data-exclude-links="${excludeLinks}" data-inwords="${encodeURIComponent(JSON.stringify(predefinedIncludeWords))}" data-exwords="${encodeURIComponent(JSON.stringify(predefinedExcludeWords))}" data-words-categories="${encodeURIComponent(JSON.stringify(wordsCategories))}" data-terms-categories="${encodeURIComponent(JSON.stringify(termsCategories))}">`;
+        blockHtml += `<div class="search-block-content">Loading search interface...</div>`;
+        blockHtml += '</div></div>';
+        
+        // Store the block and return a placeholder
+        const placeholder = '__CUSTOM_CODE_BLOCK_' + customCodeBlocks.length + '__';
+        customCodeBlocks.push(blockHtml);
+        return '\n\n' + placeholder + '\n\n';
+    });
+    
+    // Process custom code blocks SECOND
     // Pattern: >[!code]options Title\ncontent\n>[/code]
     html = html.replace(/^>\[!code\]([^\n]*)\n([\s\S]*?)\n>\[\/code\]$/gm, function(match, header, content) {
         // Parse header: options and title
@@ -700,7 +1967,6 @@ function markdownToHtml(text) {
         const bgColor = hasBlock ? 'bg-indigo-900 dark:bg-indigo-950' : (hasCollapsed ? 'bg-cyan-50 dark:bg-cyan-900/20' : 'bg-purple-50 dark:bg-purple-900/20');
         const borderColor = hasBlock ? 'border-indigo-500' : (hasCollapsed ? 'border-cyan-500' : 'border-purple-500');
         
-        const contentId = 'content-' + Math.random().toString(36).substr(2, 9);
         blockHtml += `<div id="${blockId}" class="${hasCollapsed ? 'hidden' : ''} border-l-4 ${borderColor} ${bgColor} rounded-lg p-4" style="pointer-events: auto;">`;
         
         if (hasBlock) {
@@ -710,48 +1976,32 @@ function markdownToHtml(text) {
             // Extract scripts from HTML content for proper execution
             const scriptRegex = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
             const scripts = [];
-            let htmlWithoutScripts = rawContent;
             let scriptMatch;
             
             while ((scriptMatch = scriptRegex.exec(rawContent)) !== null) {
                 const attributes = scriptMatch[1];
                 const scriptContent = scriptMatch[2];
-                scripts.push({ attributes, content: scriptContent });
+                
+                // Parse script attributes
+                const srcMatch = attributes.match(/src=["']([^"']+)["']/);
+                scripts.push({
+                    src: srcMatch ? srcMatch[1] : null,
+                    async: attributes.includes('async'),
+                    defer: attributes.includes('defer'),
+                    content: scriptContent.trim()
+                });
             }
             
-            // Remove script tags from HTML (they'll be added properly later)
-            htmlWithoutScripts = rawContent.replace(scriptRegex, '');
+            // Remove script tags from HTML
+            const htmlWithoutScripts = rawContent.replace(scriptRegex, '');
             
-            // Render HTML content with script container marker
-            blockHtml += `<div id="${contentId}" data-script-container="true">${htmlWithoutScripts}</div>`;
-            
-            // Store scripts for execution after DOM insertion
+            // If scripts exist, store them and mark container
             if (scripts.length > 0) {
-                blockHtml += `<script>
-                    (function() {
-                        const container = document.getElementById('${contentId}');
-                        if (container) {
-                            const scripts = ${JSON.stringify(scripts)};
-                            scripts.forEach(function(scriptData) {
-                                const script = document.createElement('script');
-                                const attrs = scriptData.attributes;
-                                
-                                // Parse and set attributes
-                                const srcMatch = attrs.match(/src=["']([^"']+)["']/);
-                                if (srcMatch) script.src = srcMatch[1];
-                                if (attrs.includes('async')) script.async = true;
-                                if (attrs.includes('defer')) script.defer = true;
-                                
-                                // Set inline content if no src
-                                if (!srcMatch && scriptData.content) {
-                                    script.textContent = scriptData.content;
-                                }
-                                
-                                container.appendChild(script);
-                            });
-                        }
-                    })();
-                </script>`;
+                const scriptId = 'script-' + Math.random().toString(36).substr(2, 9);
+                window.customCodeBlockScripts[scriptId] = scripts;
+                blockHtml += `<div data-script-id="${scriptId}">${htmlWithoutScripts}</div>`;
+            } else {
+                blockHtml += htmlWithoutScripts;
             }
         }
         
@@ -1008,6 +2258,10 @@ window.markdownToHtml = markdownToHtml;
     // Load roadmap
     const roadmapData = await loadRoadmapFromMarkdown();
     window.roadmapData = roadmapData;
+    
+    // Load words for search suggestions
+    const wordsData = await loadWordsFromMarkdown();
+    window.wordsData = wordsData;
     
     // Update global references
     window.contentData = contentData;

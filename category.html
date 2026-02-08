@@ -797,6 +797,9 @@
                     if (contentDiv && aboutContent && window.markdownToHtml) {
                         const htmlContent = window.markdownToHtml(aboutContent);
                         contentDiv.innerHTML = htmlContent;
+                        if (window.executeCustomCodeBlockScripts) {
+                            window.executeCustomCodeBlockScripts('aboutModal');
+                        }
                     }
                 }
                 modal.classList.remove('hidden');
@@ -820,6 +823,9 @@
                     if (contentDiv && feedbackContent && window.markdownToHtml) {
                         const htmlContent = window.markdownToHtml(feedbackContent);
                         contentDiv.innerHTML = `<div class="prose dark:prose-invert max-w-none">${htmlContent}</div>`;
+                        if (window.executeCustomCodeBlockScripts) {
+                            window.executeCustomCodeBlockScripts('feedbackModal');
+                        }
                     }
                 }
                 modal.classList.remove('hidden');
@@ -845,6 +851,9 @@
                         // Convert markdown to HTML using full markdown parser
                         const htmlContent = window.markdownToHtml ? window.markdownToHtml(userGuideContent) : userGuideContent;
                         contentDiv.innerHTML = htmlContent;
+                        if (window.executeCustomCodeBlockScripts) {
+                            window.executeCustomCodeBlockScripts('userGuideModal');
+                        }
                     }
                 }
                 modal.classList.remove('hidden');

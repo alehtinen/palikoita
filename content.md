@@ -12,6 +12,7 @@ tampere: Tampere | Tampere | orange
 ilmaiset: Ilmaista | Free stuff | cyan
 turva: Turva | Acute Help | pink
 ruoka: Ruoka | Food | emerald
+tietoturva: Tietoturva | Security | maroon
 
 ## Types
 
@@ -52,8 +53,34 @@ verkko: Verkko | Online | teal
 ulkoilu: Ulkoilu | Outdoors | red
 asuminen: Asuminen | Housing | green
 harrastus: Harrastus | Hobby | yellow
+tiedonhaku: Tiedonhaku | Research | orange
 
 # Content
+
+## Special
+
+### Ultimate search Function 5000
+Type: Link
+Main Tag: arki
+Tags: verkko, tiedonhaku
+Description FI: Internet-hakukoneita lisäasetuksilla
+Description EN: Internet search services with some extra easy to use settings
+Added: 08.02.2026
+Body FI: >[!search]copy Hakukone
+>SITES: all
+>FREEFORM: true
+>INCLUDE: true
+>EXCLUDE: true
+>[/search]
+
+Body EN:
+
+>[!search]copy+collapsed Search
+>SITES: all
+>FREEFORM: true
+>INCLUDE: true
+>EXCLUDE: true
+>[/search]
 
 ## Työttömyys
 
@@ -1163,17 +1190,31 @@ Type: link
 Main Tag: ruoka, arki
 Tags: resurssit
 PDF: true
+Hide: true
 ID: reseptisivut
 Description FI: Suomalaisia reseptisivustoja arkeen ja juhlaan.
 Description EN: Finnish recipe websites for everyday and festive cooking.
 Body FI: Reseptisivustoilta löydät ruokaohjeita erilaisiin tilanteisiin ja tarpeisiin. Tähän on listattuna kaikki itselleni vastaantulleet kotimaiset reseptisivustot. 
 
->[!info] Joskus halutunlainen resepti löytyy helpoiten googlehaun avulla.
+#### Hakukone
 
->[!code]copy Google Reseptihaku
-<script async src="https://cse.google.com/cse.js?cx=36f50abf33b394313"></script>
-<div class="gcse-search"></div>
->[/code]
+Joskus halutunlainen resepti löytyy helpoiten netistä hakemalla avulla.
+Alla olevalla hakukoneella voit etsiä netistä reseptejä ehkä tavallista helpommin.
+1. Lisää hakusanat, esim. "nopea ja edullinen pasta"
+2. Valitse hakukone. Oletuksena Google.
+3. Valitse sivustot joiden kautta haluat hakea reseptejä
+4. Lisää halutessasi sanoja, joiden olisi pakko löytyä hakutuloksista.
+5. Lisää halutessasi sanoja, jotka ei missään tapauksessa saisi löytyä hakutuloksista.
+6. Jos et valinnut sivuja joiden sisältöä haet, voit myös määrittää sivustoja, joiden sisältöä et missään tapauksessa halua nähdä hakutuloksissa.
+
+>[!search]copy+collapsed Reseptihaku
+>SITES: card
+>INCLUDE: true
+>EXCLUDE: true
+>EXLINKS: true
+>WORDS: ruoka
+>TERMS: arki
+>[/search]
 
 #### Hyödyllisiä hakusanoja:
 - **One pot** tai **yhden kattilan ruoat** - kaikki kypsyy samassa padassa, vähemmän tiskiä
@@ -1185,32 +1226,36 @@ Body FI: Reseptisivustoilta löydät ruokaohjeita erilaisiin tilanteisiin ja tar
 
 Monilla sivustoilla voit rajata hakua myös ainesosan, ruokalajin tai valmistusajan mukaan.
 
->[!info] - Blue information box
+Body EN: Recipe websites offer cooking instructions for different situations and needs.
 
->[!note] - Cyan note box
+#### Useful search terms:
+- **One pot** - everything cooks in one pot, less dishes
+- **Everyday food** or **weeknight dinner** - quick and easy basic meals  
+- **Quick** or **fast** - ready in under 30 minutes
+- **Vegetarian** or **vegan** - plant-based options
+- **Soups** - easy and filling
+- **Pasta dishes** - quick classics
 
->[!tip] - Green tip box
+Many websites allow you to filter by ingredient, dish type, or cooking time.
 
->[!quote] - Gray quote box
+Added: 05.02.2026
+Last Checked: 05.02.2026
 
->[!warning] - Yellow warning box
+#### Links: Valmistajien reseptit | Recipes by food labels
+- Name: Valio reseptihaku
+  URL: https://www.valio.fi/reseptihaku/
+  Description: Valion reseptikokoelma
 
->[!success] - Green success box
+- Name: HK reseptit
+  URL: https://www.hk.fi/reseptit/
+  Description: HK:n reseptikokoelma
 
->[!danger] - Red danger box
+- Name: Valio kotiruokasuosikit
+  URL: https://www.valio.fi/ruoka/arkiruoka/suomalaisten-kotiruokasuosikit/
+  Description: Suomalaisten suosikkiruoat
 
->[!error] - Red error box
-
->[!question] - Purple question box
-
->[!bug] - Red bug box
-
->[!example] - Purple example box
-
->[!important] - Orange important box
-
-
-
+- Name: Arla arkiruoka
+ 
 Body EN: Recipe websites offer cooking instructions for different situations and needs.
 
 #### Useful search terms:

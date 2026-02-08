@@ -918,6 +918,9 @@
                     if (contentDiv && aboutContent && window.markdownToHtml) {
                         const htmlContent = window.markdownToHtml(aboutContent);
                         contentDiv.innerHTML = htmlContent;
+                        if (window.executeCustomCodeBlockScripts) {
+                            window.executeCustomCodeBlockScripts('aboutModal');
+                        }
                     }
                 }
                 modal.classList.remove('hidden');
