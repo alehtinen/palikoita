@@ -648,6 +648,120 @@ function markdownToHtml(text) {
     if (!text) return '';
     
     let html = text;
+    const customCodeBlocks = [];
+    
+    // Process custom code blocks FIRST (before any other processing)
+    // Pattern: >[!code]options Title\ncontent\n>[/code]
+    html = html.replace(/^>\[!code\]([^\n]*)\n([\s\S]*?)\n>\[\/code\]$/gm, function(match, header, content) {
+        // Parse header: options and title
+        const headerMatch = header.match(/^([a-z+]*)\s*(.*)$/);
+        const optionsStr = headerMatch ? headerMatch[1] : '';
+        const title = headerMatch ? headerMatch[2].trim() : header.trim();
+        const displayTitle = title || 'Code';
+        
+        const options = optionsStr ? optionsStr.split('+').filter(o => o) : [];
+        const hasBlock = options.includes('block');
+        const hasCopy = options.includes('copy');
+        const hasCollapsed = options.includes('collapsed');
+        
+        // Generate unique ID for collapse functionality
+        const blockId = 'code-' + Math.random().toString(36).substr(2, 9);
+        
+        // Escape content for copy functionality and code display
+        const rawContent = content.trim();
+        const escapedContent = rawContent
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+        
+        // Build the HTML
+        let blockHtml = '<div class="my-4">';
+        
+        // Title (simple, no box)
+        if (displayTitle) {
+            blockHtml += '<div class="flex items-center justify-between mb-2">';
+            blockHtml += '<div class="flex items-center gap-2">';
+            if (hasCollapsed) {
+                blockHtml += `<svg class="collapse-icon w-4 h-4 transition-transform${hasCollapsed ? '' : ' rotate-90'} text-gray-700 dark:text-gray-300 cursor-pointer" fill="currentColor" viewBox="0 0 20 20" onclick="const el = document.getElementById('${blockId}'); el.classList.toggle('hidden'); this.classList.toggle('rotate-90')"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>`;
+            }
+            blockHtml += `<span class="text-sm font-semibold text-gray-700 dark:text-gray-300">${displayTitle}</span>`;
+            blockHtml += '</div>';
+            
+            if (hasCopy) {
+                blockHtml += `<button onclick="navigator.clipboard.writeText(decodeURIComponent('${encodeURIComponent(rawContent)}')); const btn = this; btn.textContent='✓ Copied'; setTimeout(() => btn.textContent='Copy', 2000)" class="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors">Copy</button>`;
+            }
+            
+            blockHtml += '</div>';
+        }
+        
+        // Content area with callout-style box - use colorful backgrounds
+        const bgColor = hasBlock ? 'bg-indigo-900 dark:bg-indigo-950' : (hasCollapsed ? 'bg-cyan-50 dark:bg-cyan-900/20' : 'bg-purple-50 dark:bg-purple-900/20');
+        const borderColor = hasBlock ? 'border-indigo-500' : (hasCollapsed ? 'border-cyan-500' : 'border-purple-500');
+        
+        const contentId = 'content-' + Math.random().toString(36).substr(2, 9);
+        blockHtml += `<div id="${blockId}" class="${hasCollapsed ? 'hidden' : ''} border-l-4 ${borderColor} ${bgColor} rounded-lg p-4" style="pointer-events: auto;">`;
+        
+        if (hasBlock) {
+            // Display as code with syntax highlighting
+            blockHtml += `<pre class="overflow-x-auto text-sm"><code class="text-indigo-100">${escapedContent}</code></pre>`;
+        } else {
+            // Extract scripts from HTML content for proper execution
+            const scriptRegex = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+            const scripts = [];
+            let htmlWithoutScripts = rawContent;
+            let scriptMatch;
+            
+            while ((scriptMatch = scriptRegex.exec(rawContent)) !== null) {
+                const attributes = scriptMatch[1];
+                const scriptContent = scriptMatch[2];
+                scripts.push({ attributes, content: scriptContent });
+            }
+            
+            // Remove script tags from HTML (they'll be added properly later)
+            htmlWithoutScripts = rawContent.replace(scriptRegex, '');
+            
+            // Render HTML content with script container marker
+            blockHtml += `<div id="${contentId}" data-script-container="true">${htmlWithoutScripts}</div>`;
+            
+            // Store scripts for execution after DOM insertion
+            if (scripts.length > 0) {
+                blockHtml += `<script>
+                    (function() {
+                        const container = document.getElementById('${contentId}');
+                        if (container) {
+                            const scripts = ${JSON.stringify(scripts)};
+                            scripts.forEach(function(scriptData) {
+                                const script = document.createElement('script');
+                                const attrs = scriptData.attributes;
+                                
+                                // Parse and set attributes
+                                const srcMatch = attrs.match(/src=["']([^"']+)["']/);
+                                if (srcMatch) script.src = srcMatch[1];
+                                if (attrs.includes('async')) script.async = true;
+                                if (attrs.includes('defer')) script.defer = true;
+                                
+                                // Set inline content if no src
+                                if (!srcMatch && scriptData.content) {
+                                    script.textContent = scriptData.content;
+                                }
+                                
+                                container.appendChild(script);
+                            });
+                        }
+                    })();
+                </script>`;
+            }
+        }
+        
+        blockHtml += '</div></div>';
+        
+        // Store the block and return a placeholder
+        const placeholder = '__CUSTOM_CODE_BLOCK_' + customCodeBlocks.length + '__';
+        customCodeBlocks.push(blockHtml);
+        return '\n\n' + placeholder + '\n\n';
+    });
     
     // Handle bold **text** FIRST
     html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="text-gray-900 dark:text-white">$1</strong>');
@@ -667,6 +781,15 @@ function markdownToHtml(text) {
         if (block === '__HORIZONTAL_RULE__') {
             processedBlocks.push('<hr class="my-6 border-gray-300 dark:border-gray-600">');
             continue;
+        }
+        
+        // Check if this is a custom code block placeholder
+        if (block.match(/^__CUSTOM_CODE_BLOCK_\d+__$/)) {
+            const index = parseInt(block.match(/\d+/)[0]);
+            if (customCodeBlocks[index]) {
+                processedBlocks.push(customCodeBlocks[index]);
+                continue;
+            }
         }
         
         // Check if this is an Obsidian-style callout
@@ -903,7 +1026,7 @@ async function loadRoadmapFromMarkdown() {
         return parseRoadmapContent(markdown);
     } catch (error) {
         if (typeof window !== 'undefined' && window.DEBUG_LOG) window.DEBUG_LOG('Error loading content info', error);
-        return { sections: [], about: '', feedback: '' };
+        return { sections: [], about: { fi: '', en: '' }, feedback: { fi: '', en: '' }, userGuide: { fi: '', en: '' } };
     }
 }
 
@@ -911,20 +1034,22 @@ function parseRoadmapContent(markdown) {
     const lines = markdown.split('\n');
     const sections = [];
     let currentSection = null;
-    let currentMainSection = null; // Track ## level sections (Roadmap, About, Feedback)
+    let currentMainSection = null; // Track ## level sections (Roadmap, About, Feedback, Käyttöohjeet)
     let currentSubSection = null; // Track ### level sections (About FI, About EN, etc.)
     let aboutFi = '';
     let aboutEn = '';
     let feedbackFi = '';
     let feedbackEn = '';
+    let userGuideFi = '';
+    let userGuideEn = '';
     let isCollectingContent = false;
-    let targetContent = null; // Which content are we collecting: 'aboutFi', 'aboutEn', 'feedbackFi', 'feedbackEn'
+    let targetContent = null; // Which content are we collecting: 'aboutFi', 'aboutEn', 'feedbackFi', 'feedbackEn', 'userGuideFi', 'userGuideEn'
     
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const trimmedLine = line.trim();
         
-        // Main section header (## Roadmap, ## About, ## Feedback)
+        // Main section header (## Roadmap, ## About, ## Feedback, ## Käyttöohjeet)
         if (trimmedLine.startsWith('## ')) {
             const mainSectionName = trimmedLine.substring(3).trim();
             
@@ -940,7 +1065,7 @@ function parseRoadmapContent(markdown) {
             continue;
         }
         
-        // Subsection header (### for both Roadmap items and About/Feedback subsections)
+        // Subsection header (### for both Roadmap items and About/Feedback/Käyttöohjeet subsections)
         if (trimmedLine.startsWith('### ')) {
             const subSectionName = trimmedLine.substring(4).trim();
             
@@ -955,7 +1080,7 @@ function parseRoadmapContent(markdown) {
                     items: []
                 };
             } else {
-                // Otherwise it's About FI/EN or Feedback FI/EN
+                // Otherwise it's About FI/EN, Feedback FI/EN, or Käyttöohjeet FI/EN
                 currentSubSection = subSectionName;
                 isCollectingContent = false; // Wait for "Body FI" or "Body EN"
             }
@@ -986,6 +1111,10 @@ function parseRoadmapContent(markdown) {
                 targetContent = 'feedbackFi';
             } else if (currentMainSection === 'Feedback' && trimmedLine === 'Body EN') {
                 targetContent = 'feedbackEn';
+            } else if (currentMainSection === 'Käyttöohjeet' && trimmedLine === 'Body FI') {
+                targetContent = 'userGuideFi';
+            } else if (currentMainSection === 'Käyttöohjeet' && trimmedLine === 'Body EN') {
+                targetContent = 'userGuideEn';
             }
             continue; // Don't add the "Body FI/EN" line itself
         }
@@ -1001,6 +1130,10 @@ function parseRoadmapContent(markdown) {
                 feedbackFi += line + '\n';
             } else if (targetContent === 'feedbackEn') {
                 feedbackEn += line + '\n';
+            } else if (targetContent === 'userGuideFi') {
+                userGuideFi += line + '\n';
+            } else if (targetContent === 'userGuideEn') {
+                userGuideEn += line + '\n';
             }
         }
     }
@@ -1013,6 +1146,7 @@ function parseRoadmapContent(markdown) {
     return { 
         sections, 
         about: { fi: aboutFi.trim(), en: aboutEn.trim() }, 
-        feedback: { fi: feedbackFi.trim(), en: feedbackEn.trim() } 
+        feedback: { fi: feedbackFi.trim(), en: feedbackEn.trim() },
+        userGuide: { fi: userGuideFi.trim(), en: userGuideEn.trim() }
     };
 }

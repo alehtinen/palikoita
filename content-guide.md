@@ -358,6 +358,70 @@ Format:
 Content on next line after blank line
 ```
 
+## Custom Code Blocks
+
+Custom code blocks allow you to embed HTML/scripts or display code with syntax highlighting.
+
+### Basic Syntax
+
+**Render HTML content:**
+```markdown
+>[!code] Title Here
+<script async src="https://example.com/widget.js"></script>
+<div class="my-widget"></div>
+>[/code]
+```
+
+**Display code with syntax highlighting:**
+```markdown
+>[!code]block Code Example
+const greeting = "Hello World";
+console.log(greeting);
+>[/code]
+```
+
+### Options
+
+Options are added after `>[!code]` and before the title, separated by `+`:
+
+- `block` - Display content as code with syntax highlighting instead of rendering it
+- `copy` - Add a copy button in the top-right corner
+- `collapsed` - Start in collapsed state (click title to expand)
+
+**Examples:**
+
+Copy button only:
+```markdown
+>[!code]copy My Custom Widget
+<div>Content here</div>
+>[/code]
+```
+
+Code display with copy:
+```markdown
+>[!code]block+copy JavaScript Example
+function hello() {
+  return "Hello!";
+}
+>[/code]
+```
+
+All options combined:
+```markdown
+>[!code]block+copy+collapsed Advanced Example
+// This code block starts collapsed
+// and has a copy button
+const result = calculate();
+>[/code]
+```
+
+### Notes
+
+- Content between `>[!code]` and `>[/code]` is NOT processed as markdown
+- Without `block` option, HTML/scripts are rendered (centered in container)
+- With `block` option, content is displayed as code
+- Copy button copies the raw content from the markdown file
+
 # Debug
 
 The site includes an optional `debug.js` helper you can load to get advanced diagnostics. Use it only in development or on a trusted local server.

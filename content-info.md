@@ -21,6 +21,18 @@ Status: valmis | completed
 - Monikielinen tuki | Multi-language support
 - PDF-vientiominaisuus | PDF export feature
 
+## Käyttöohjeet
+
+### Käyttöohjeet FI
+Body FI
+
+- Käyttöohjeet tulossa pian.
+
+### Käyttöohjeet EN
+Body EN
+
+- User guide coming soon.
+
 ## About
 ### About FI
 Body FI

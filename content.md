@@ -1163,9 +1163,17 @@ Type: link
 Main Tag: ruoka, arki
 Tags: resurssit
 PDF: true
+ID: reseptisivut
 Description FI: Suomalaisia reseptisivustoja arkeen ja juhlaan.
 Description EN: Finnish recipe websites for everyday and festive cooking.
-Body FI: Reseptisivustoilta löydät ruokaohjeita erilaisiin tilanteisiin ja tarpeisiin. 
+Body FI: Reseptisivustoilta löydät ruokaohjeita erilaisiin tilanteisiin ja tarpeisiin. Tähän on listattuna kaikki itselleni vastaantulleet kotimaiset reseptisivustot. 
+
+>[!info] Joskus halutunlainen resepti löytyy helpoiten googlehaun avulla.
+
+>[!code]copy Google Reseptihaku
+<script async src="https://cse.google.com/cse.js?cx=36f50abf33b394313"></script>
+<div class="gcse-search"></div>
+>[/code]
 
 #### Hyödyllisiä hakusanoja:
 - **One pot** tai **yhden kattilan ruoat** - kaikki kypsyy samassa padassa, vähemmän tiskiä
