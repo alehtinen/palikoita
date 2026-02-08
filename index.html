@@ -80,6 +80,58 @@
         .hover\:border-blue-500,.hover\:border-purple-500,.hover\:border-green-500,
         .hover\:text-blue-300,.hover\:text-blue-700,.hover\:text-purple-300,.hover\:text-purple-700,
         .dark\:hover\:text-blue-300,.dark\:hover\:text-purple-300 { }
+        
+        /* Search block title highlight */
+        .search-title-highlight {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            border-left: 3px solid #9333ea;
+        }
+        .dark .search-title-highlight {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.25) 0%, rgba(236, 72, 153, 0.25) 100%);
+            border-left-color: #a855f7;
+        }
+        
+        /* Numbered list styling */
+        .prose ol {
+            counter-reset: item;
+            list-style: none;
+            padding-left: 0;
+        }
+        .prose ol > li {
+            counter-increment: item;
+            position: relative;
+            padding-left: 2.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .prose ol > li::before {
+            content: counter(item);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
+            font-weight: 600;
+            width: 1.75rem;
+            height: 1.75rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .dark .prose ol > li::before {
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .prose ol ol > li::before {
+            background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+        }
+        .dark .prose ol ol > li::before {
+            background: linear-gradient(135deg, #34d399 0%, #22d3ee 100%);
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 min-h-screen transition-colors duration-200 overflow-x-hidden flex flex-col">

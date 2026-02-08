@@ -1894,12 +1894,12 @@ function markdownToHtml(text) {
         
         // Title header
         if (displayTitle) {
-            blockHtml += '<div class="flex items-center justify-between mb-2">';
-            blockHtml += '<div class="flex items-center gap-2">';
+            blockHtml += '<div class="flex items-center justify-between mb-3">';
+            blockHtml += '<div class="flex items-center gap-2 search-title-highlight flex-1">';
             if (hasCollapsed) {
-                blockHtml += `<svg class="collapse-icon w-4 h-4 transition-transform${hasCollapsed ? '' : ' rotate-90'} text-gray-700 dark:text-gray-300 cursor-pointer" fill="currentColor" viewBox="0 0 20 20" onclick="const el = document.getElementById('${blockId}'); el.classList.toggle('hidden'); this.classList.toggle('rotate-90')"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>`;
+                blockHtml += `<svg class="collapse-icon w-5 h-5 transition-transform${hasCollapsed ? '' : ' rotate-90'} text-purple-700 dark:text-purple-300 cursor-pointer flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" onclick="const el = document.getElementById('${blockId}'); el.classList.toggle('hidden'); this.classList.toggle('rotate-90')"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>`;
             }
-            blockHtml += `<span class="text-sm font-semibold text-gray-700 dark:text-gray-300">${displayTitle}</span>`;
+            blockHtml += `<span class="text-base font-bold text-purple-800 dark:text-purple-200">${displayTitle}</span>`;
             blockHtml += '</div></div>';
         }
         
