@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Päivää! - Search</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#8b5cf6',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 min-h-screen">
+    <header class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <button onclick="goBack()" id="backBtn" class="p-2 sm:px-3 sm:py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium text-xs sm:text-sm" title="Takaisin">←</button>
+                <h1 id="pageTitle" class="text-lg font-bold text-gray-900 dark:text-white">Hakukone</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="langToggle" title="Vaihda kieli" class="p-2 sm:px-3 sm:py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium text-xs sm:text-sm">EN</button>
+                <button id="themeToggle" title="Vaihda teema" class="p-2 sm:px-3 sm:py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium text-xs sm:text-sm inline-flex items-center justify-center">
+                    <svg id="sunIcon" class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path></svg>
+                    <svg id="moonIcon" class="w-5 h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-6">
+        <!-- Search block dropdown (only shown for default engine) -->
+        <div id="searchBlockSelector" class="hidden mb-6 bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Valitse hakukone</label>
+            <select id="searchBlockDropdown" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" onchange="switchSearchBlock()">
+                <!-- Options populated by JavaScript -->
+            </select>
+        </div>
+
+        <!-- Main search interface -->
+        <div id="searchInterface" class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow">
+            <div class="text-center text-gray-600 dark:text-gray-400">Ladataan hakukonetta...</div>
+        </div>
+    </main>
+
+    <script src="loader.js"></script>
+    <script>
+        (function() {
+            let currentCardId = null;
+            let currentSearchId = null;
+            let isDefaultEngine = false;
+
+            // Initialize
+            async function init() {
+                // Wait for loader.js to load content
+                await new Promise(resolve => {
+                    if (window.contentData && window.contentData.length > 0) {
+                        resolve();
+                    } else {
+                        const checkInterval = setInterval(() => {
+                            if (window.contentData && window.contentData.length > 0) {
+                                clearInterval(checkInterval);
+                                resolve();
+                            }
+                        }, 100);
+                    }
+                });
+                
+                // Apply theme and language from localStorage
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                const savedLang = localStorage.getItem('preferredLanguage') || 'fi';
+                
+                if (savedTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                }
+                document.documentElement.lang = savedLang;
+                updateLangToggle(savedLang);
+                
+                // Parse URL hash
+                const hash = window.location.hash.substring(1); // Remove #
+                const params = new URLSearchParams(hash);
+                currentCardId = params.get('card');
+                currentSearchId = params.get('sid');
+                
+                // If no parameters or card is 'zero', show default engine
+                if (!currentCardId || currentCardId === 'zero') {
+                    showDefaultEngine();
+                } else {
+                    showCardSearchEngine(currentCardId, currentSearchId);
+                }
+                
+                // Setup theme and language toggles
+                setupThemeToggle();
+                setupLangToggle();
+                setupBackButton();
+            }
+        
+            function showDefaultEngine() {
+                isDefaultEngine = true;
+                currentCardId = 'zero';
+                
+                // Find the 'zero' card in content
+                const zeroCard = window.contentData.find(item => item.id === 'zero');
+            
+                if (!zeroCard || !zeroCard.searchBlocks || zeroCard.searchBlocks.length === 0) {
+                    document.getElementById('searchInterface').innerHTML = '<div class="text-center text-red-600 dark:text-red-400">Oletushakukonetta ei löytynyt.</div>';
+                    return;
+                }
+                
+                // Use first search block as default
+                const searchBlock = zeroCard.searchBlocks[0];
+                currentSearchId = searchBlock.sId;
+                
+                // Update page title
+                const lang = localStorage.getItem('preferredLanguage') || 'fi';
+                document.getElementById('pageTitle').textContent = zeroCard.title[lang] || 'Hakukone';
+                
+                // Populate search block dropdown with all available search engines
+                populateSearchBlockDropdown();
+                document.getElementById('searchBlockSelector').classList.remove('hidden');
+                
+                // Render the default search interface
+                renderSearchInterface(searchBlock);
+            }
+        
+            function showCardSearchEngine(cardId, searchId) {
+                isDefaultEngine = false;
+                
+                // Find the card
+                const card = window.contentData.find(item => item.id == cardId);
+            
+                if (!card) {
+                    document.getElementById('searchInterface').innerHTML = '<div class="text-center text-red-600 dark:text-red-400">Korttia ei löytynyt.</div>';
+                    return;
+                }
+                
+                if (!card.searchBlocks || card.searchBlocks.length === 0) {
+                    document.getElementById('searchInterface').innerHTML = '<div class="text-center text-red-600 dark:text-red-400">Kortissa ei ole hakutoimintoja.</div>';
+                    return;
+                }
+                
+                // Find specific search block or use first one
+                let searchBlock;
+                if (searchId) {
+                    searchBlock = card.searchBlocks.find(sb => sb.sId === searchId);
+                }
+                if (!searchBlock) {
+                    searchBlock = card.searchBlocks[0];
+                }
+                
+                    currentSearchId = searchBlock.sId;
+                
+                // Update page title
+                const lang = localStorage.getItem('preferredLanguage') || 'fi';
+                document.getElementById('pageTitle').textContent = searchBlock.title || card.title[lang] || 'Haku';
+                
+                // Hide search block selector
+                document.getElementById('searchBlockSelector').classList.add('hidden');
+                
+                // Render search interface
+                renderSearchInterface(searchBlock);
+            }
+        
+            function populateSearchBlockDropdown() {
+                const dropdown = document.getElementById('searchBlockDropdown');
+                dropdown.innerHTML = '';
+                
+                const lang = localStorage.getItem('preferredLanguage') || 'fi';
+                
+                // Add default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = 'zero';
+                defaultOption.textContent = 'Oletushaku';
+                defaultOption.selected = currentCardId === 'zero';
+                dropdown.appendChild(defaultOption);
+                
+                // Add all other search blocks from all cards
+                window.contentData.forEach(card => {
+                    if (card.searchBlocks && card.searchBlocks.length > 0) {
+                        card.searchBlocks.forEach(searchBlock => {
+                            if (searchBlock.sId !== currentSearchId || currentCardId !== 'zero') {
+                                const option = document.createElement('option');
+                                option.value = `${card.id}|${searchBlock.sId}`;
+                                const cardTitle = card.title[lang] || card.title.fi;
+                                const blockTitle = searchBlock.title ? ` - ${searchBlock.title}` : '';
+                                option.textContent = `${cardTitle}${blockTitle}`;
+                                dropdown.appendChild(option);
+                            }
+                        });
+                    }
+                });
+            }
+            
+            function switchSearchBlock() {
+                const dropdown = document.getElementById('searchBlockDropdown');
+                const value = dropdown.value;
+                
+                if (value === 'zero') {
+                    window.location.hash = '#card=zero';
+                    location.reload();
+                } else {
+                    const [cardId, searchId] = value.split('|');
+                    window.location.hash = `#card=${cardId}&sid=${searchId}`;
+                    location.reload();
+                }
+            }
+            
+            // Expose to global scope for HTML onclick
+            window.switchSearchBlock = switchSearchBlock;
+            
+            function renderSearchInterface(searchBlock) {
+                const config = searchBlock.config;
+                
+                // Determine sites based on SITES rule
+                let sites = [];
+                if (config.customUrls && config.customUrls.length > 0) {
+                    sites = config.customUrls.map(url => {
+                        try {
+                            const domain = new URL(url).hostname.replace('www.', '');
+                            return { domain, name: domain };
+                        } catch {
+                            return { domain: url, name: url };
+                        }
+                    });
+                } else {
+                    // This would need to be implemented based on SITES rule
+                    // For now, just use empty array or fetch from current card
+                    const card = window.contentData.find(item => item.id == currentCardId);
+                    if (card && config.sites) {
+                        sites = extractSitesFromCard(card, config.sites);
+                    }
+                }
+                
+                // Generate unique block ID
+                const blockId = 'search-standalone';
+                
+                // Build and render the search interface
+                const searchHTML = buildSearchInterface(
+                    blockId, 
+                    sites, 
+                    config.freeform, 
+                    true, // hasCopy
+                    config.includeWords, 
+                    config.excludeWords, 
+                    config.excludeLinks,
+                    config.wordsCategories || [],
+                    config.termsCategories || []
+                );
+                
+                document.getElementById('searchInterface').innerHTML = searchHTML;
+                
+                // Initialize handlers
+                initializeSearchHandlers(
+                    blockId,
+                    sites,
+                    config.freeform,
+                    config.includeWords,
+                    config.excludeWords,
+                    config.excludeLinks,
+                    config.predefinedIncludeWords || [],
+                    config.predefinedExcludeWords || [],
+                    config.wordsCategories || [],
+                    config.termsCategories || []
+                );
+            }
+            
+            function extractSitesFromCard(card, sitesRule) {
+                // This should implement the same logic as in loader.js
+                // For now, return empty array - will be implemented properly
+                const sites = [];
+                
+                // Extract URLs from card based on sitesRule
+                if (sitesRule === 'all') {
+                    // Get all URLs from all cards
+                    window.contentData.forEach(item => {
+                        if (item.url) {
+                            try {
+                                const domain = new URL(item.url).hostname.replace('www.', '');
+                                const lang = localStorage.getItem('preferredLanguage') || 'fi';
+                                const name = item.title[lang] || item.title.fi;
+                                sites.push({ domain, name });
+                            } catch {}
+                        }
+                    });
+                } else if (sitesRule === 'card') {
+                    if (card.url) {
+                        try {
+                            const domain = new URL(card.url).hostname.replace('www.', '');
+                            const lang = localStorage.getItem('preferredLanguage') || 'fi';
+                            const name = card.title[lang] || card.title.fi;
+                            sites.push({ domain, name });
+                        } catch {}
+                    }
+                }
+                // Add other rules (category, tag, keywords) if needed
+                
+                return sites;
+            }
+            
+            function setupThemeToggle() {
+                const themeToggle = document.getElementById('themeToggle');
+                themeToggle.addEventListener('click', () => {
+                    const isDark = document.documentElement.classList.toggle('dark');
+                    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                });
+            }
+            
+            function setupLangToggle() {
+                const langToggle = document.getElementById('langToggle');
+                langToggle.addEventListener('click', () => {
+                    const currentLang = localStorage.getItem('preferredLanguage') || 'fi';
+                    const newLang = currentLang === 'fi' ? 'en' : 'fi';
+                    localStorage.setItem('preferredLanguage', newLang);
+                    document.documentElement.lang = newLang;
+                    updateLangToggle(newLang);
+                    // Reload to update language
+                    location.reload();
+                });
+            }
+            
+            function updateLangToggle(lang) {
+                const langToggle = document.getElementById('langToggle');
+                langToggle.textContent = lang === 'fi' ? 'EN' : 'FI';
+            }
+            
+            function setupBackButton() {
+                const backBtn = document.getElementById('backBtn');
+                backBtn.onclick = goBack;
+            }
+            
+            function goBack() {
+                // If we have a card ID (not zero), go back to that card
+                if (currentCardId && currentCardId !== 'zero') {
+                    window.location.href = `card.html#${currentCardId}`;
+                } else {
+                    // Otherwise go to index
+                    window.location.href = 'index.html';
+                }
+            }
+            
+            // Redirect to default if no hash
+            if (!window.location.hash || window.location.hash === '#') {
+                window.location.hash = '#card=zero';
+            }
+            
+            // Initialize when DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+</body>
+</html>

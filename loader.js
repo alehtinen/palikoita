@@ -30,6 +30,7 @@ function parseMarkdownContent(markdown) {
     let currentLinkItem = null; // Current link item being built
     let contentOrder = []; // Track order of body sections and link sections
     let bodyCounter = 0; // Counter for multiple body sections
+    let searchBlockCounter = 0; // Counter for search block IDs within each card
     
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
@@ -201,6 +202,7 @@ function parseMarkdownContent(markdown) {
             // Format: ### FinnishTitle | EnglishTitle
             const titleParts = trimmedLine.substring(4).split('|');
             itemId++;
+            searchBlockCounter = 0; // Reset search block counter for new item
             currentItem = {
                 id: itemId,
                 title: {
@@ -588,6 +590,95 @@ function parseMarkdownContent(markdown) {
     if (currentItem) {
         content.push(currentItem);
     }
+    
+    // Extract search block metadata from body content
+    content.forEach(item => {
+        if (!item.bodyParts) return;
+        
+        item.bodyParts.forEach(bodyPart => {
+            if (!bodyPart.content) return;
+            
+            // Look for search blocks in body content
+            const searchBlockRegex = />\[!search\]([^\n]*)\n([\s\S]*?)\n>\[\/search\]/gm;
+            let match;
+            let searchBlockIndex = 0;
+            
+            while ((match = searchBlockRegex.exec(bodyPart.content)) !== null) {
+                const header = match[1];
+                const content = match[2];
+                const lines = content.split('\n');
+                
+                // Parse header for options and title
+                const hasCopy = header.includes('copy');
+                const hasCollapsed = header.includes('collapsed');
+                const displayTitle = header.replace(/copy/g, '').replace(/collapsed/g, '').replace(/\+/g, '').trim();
+                
+                // Parse configuration
+                let sitesRule = 'card';
+                let freeform = false;
+                let customUrls = [];
+                let includeWords = false;
+                let excludeWords = false;
+                let excludeLinks = false;
+                let predefinedIncludeWords = [];
+                let predefinedExcludeWords = [];
+                let wordsCategories = [];
+                let termsCategories = [];
+                
+                lines.forEach(line => {
+                    if (line.startsWith('>URLs:')) {
+                        const urlsStr = line.substring(6).trim();
+                        customUrls = urlsStr.split(',').map(u => u.trim()).filter(u => u);
+                    } else if (line.startsWith('>SITES:')) {
+                        sitesRule = line.substring(7).trim().toLowerCase();
+                    } else if (line.startsWith('>FREEFORM:')) {
+                        const freeformValue = line.substring(10).trim().toLowerCase();
+                        freeform = freeformValue === 'true' || freeformValue === 'true++' ? freeformValue : false;
+                    } else if (line.startsWith('>INCLUDE:')) {
+                        includeWords = line.substring(9).trim().toLowerCase() === 'true';
+                    } else if (line.startsWith('>EXCLUDE:')) {
+                        excludeWords = line.substring(9).trim().toLowerCase() === 'true';
+                    } else if (line.startsWith('>INWORD:')) {
+                        const wordsStr = line.substring(8).trim();
+                        predefinedIncludeWords = wordsStr.split(',').map(w => w.trim()).filter(w => w);
+                    } else if (line.startsWith('>EXWORD:')) {
+                        const wordsStr = line.substring(8).trim();
+                        predefinedExcludeWords = wordsStr.split(',').map(w => w.trim()).filter(w => w);
+                    } else if (line.startsWith('>WORDS:')) {
+                        const categoriesStr = line.substring(7).trim();
+                        wordsCategories = categoriesStr.split(',').map(c => c.trim()).filter(c => c);
+                    } else if (line.startsWith('>TERMS:')) {
+                        const categoriesStr = line.substring(7).trim();
+                        termsCategories = categoriesStr.split(',').map(c => c.trim()).filter(c => c);
+                    } else if (line.startsWith('>EXLINKS:')) {
+                        const value = line.substring(9).trim().toLowerCase();
+                        excludeLinks = value === 'true';
+                    }
+                });
+                
+                // Create search block entry
+                if (!item.searchBlocks) item.searchBlocks = [];
+                const searchBlockId = item.id ? `${item.id}-search-${searchBlockIndex++}` : `search-${searchBlockIndex++}`;
+                
+                item.searchBlocks.push({
+                    sId: searchBlockId,
+                    title: displayTitle,
+                    config: {
+                        sites: sitesRule,
+                        freeform: freeform,
+                        includeWords: includeWords,
+                        excludeWords: excludeWords,
+                        excludeLinks: excludeLinks,
+                        predefinedIncludeWords: predefinedIncludeWords,
+                        predefinedExcludeWords: predefinedExcludeWords,
+                        wordsCategories: wordsCategories,
+                        termsCategories: termsCategories,
+                        customUrls: customUrls
+                    }
+                });
+            }
+        });
+    });
     
     // Debug logging for each content item (no-op unless debug helper is present)
     content.forEach((item, idx) => {
@@ -994,8 +1085,8 @@ function buildSearchInterface(blockId, sites, freeform, hasCopy, includeWords, e
     html += '</select>';
     html += '</div>';
     
-    // Sites selector
-    if (sites.length > 0 && !freeform) {
+    // Sites selector - show if not freeform OR if freeform is 'true++'
+    if (sites.length > 0 && (!freeform || freeform === 'true++')) {
         html += '<div>';
         html += '<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Hae vain näiltä sivustoilta</label>';
         
@@ -1019,8 +1110,8 @@ function buildSearchInterface(blockId, sites, freeform, hasCopy, includeWords, e
         html += '</div>';
     }
     
-    // Freeform site input  
-    if (freeform) {
+    // Freeform site input - show if freeform is 'true' or 'true++'
+    if (freeform === true || freeform === 'true' || freeform === 'true++') {
         html += '<div>';
         html += '<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Lisää sivustoja</label>';
         html += `<div class="relative">`;
@@ -1862,7 +1953,8 @@ function markdownToHtml(text) {
             } else if (line.startsWith('>SITES:')) {
                 sitesRule = line.substring(7).trim().toLowerCase();
             } else if (line.startsWith('>FREEFORM:')) {
-                freeform = line.substring(10).trim().toLowerCase() === 'true';
+                const freeformValue = line.substring(10).trim().toLowerCase();
+                freeform = freeformValue === 'true' || freeformValue === 'true++' ? freeformValue : false;
             } else if (line.startsWith('>INCLUDE:')) {
                 includeWords = line.substring(9).trim().toLowerCase() === 'true';
             } else if (line.startsWith('>EXCLUDE:')) {
@@ -1886,8 +1978,32 @@ function markdownToHtml(text) {
             }
         });
         
-        // Generate unique ID
+        // Generate unique ID and search ID (sID)
         const blockId = 'search-' + Math.random().toString(36).substr(2, 9);
+        // Only create sID and store metadata if we're in the parsing context (currentItem exists)
+        let searchBlockId = blockId;
+        if (typeof currentItem !== 'undefined' && currentItem && currentItem.id) {
+            searchBlockId = `${currentItem.id}-search-${searchBlockCounter++}`;
+            
+            // Store search block metadata for later use
+            if (!currentItem.searchBlocks) currentItem.searchBlocks = [];
+            currentItem.searchBlocks.push({
+                sId: searchBlockId,
+                title: displayTitle,
+                config: {
+                    sites: sitesRule,
+                    freeform: freeform,
+                    includeWords: includeWords,
+                    excludeWords: excludeWords,
+                    excludeLinks: excludeLinks,
+                    predefinedIncludeWords: predefinedIncludeWords,
+                    predefinedExcludeWords: predefinedExcludeWords,
+                    wordsCategories: wordsCategories,
+                    termsCategories: termsCategories,
+                    customUrls: customUrls
+                }
+            });
+        }
         
         // Build HTML with data attributes for client-side initialization
         let blockHtml = '<div class="my-4">';
@@ -1900,14 +2016,22 @@ function markdownToHtml(text) {
                 blockHtml += `<svg class="collapse-icon w-5 h-5 transition-transform${hasCollapsed ? '' : ' rotate-90'} text-purple-700 dark:text-purple-300 cursor-pointer flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" onclick="const el = document.getElementById('${blockId}'); el.classList.toggle('hidden'); this.classList.toggle('rotate-90')"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>`;
             }
             blockHtml += `<span class="text-base font-bold text-purple-800 dark:text-purple-200">${displayTitle}</span>`;
-            blockHtml += '</div></div>';
+            blockHtml += '</div>';
+            // Add 'open in new tab' button (only if we have a card context)
+            if (typeof currentItem !== 'undefined' && currentItem && currentItem.id) {
+                const cardId = currentItem.id;
+                blockHtml += `<a href="search.html#card=${cardId}" target="_blank" class="p-2 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg transition-colors" title="Avaa omalle sivulle">`;
+                blockHtml += '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>';
+                blockHtml += '</a>';
+            }
+            blockHtml += '</div>';
         }
         
         // Content area - placeholder for client-side initialization
         const bgColor = 'bg-purple-50 dark:bg-purple-900/20';
         const borderColor = 'border-purple-500';
         
-        blockHtml += `<div id="${blockId}" class="${hasCollapsed ? 'hidden' : ''} border-l-4 ${borderColor} ${bgColor} rounded-lg p-4" style="pointer-events: auto;" data-search-block="true" data-custom-urls="${encodeURIComponent(JSON.stringify(customUrls))}" data-sites-rule="${sitesRule}" data-freeform="${freeform}" data-has-copy="${hasCopy}" data-include-words="${includeWords}" data-exclude-words="${excludeWords}" data-exclude-links="${excludeLinks}" data-inwords="${encodeURIComponent(JSON.stringify(predefinedIncludeWords))}" data-exwords="${encodeURIComponent(JSON.stringify(predefinedExcludeWords))}" data-words-categories="${encodeURIComponent(JSON.stringify(wordsCategories))}" data-terms-categories="${encodeURIComponent(JSON.stringify(termsCategories))}">`;
+        blockHtml += `<div id="${blockId}" class="${hasCollapsed ? 'hidden' : ''} border-l-4 ${borderColor} ${bgColor} rounded-lg p-4" style="pointer-events: auto;" data-search-block="true" data-sid="${searchBlockId}" data-custom-urls="${encodeURIComponent(JSON.stringify(customUrls))}" data-sites-rule="${sitesRule}" data-freeform="${freeform}" data-has-copy="${hasCopy}" data-include-words="${includeWords}" data-exclude-words="${excludeWords}" data-exclude-links="${excludeLinks}" data-inwords="${encodeURIComponent(JSON.stringify(predefinedIncludeWords))}" data-exwords="${encodeURIComponent(JSON.stringify(predefinedExcludeWords))}" data-words-categories="${encodeURIComponent(JSON.stringify(wordsCategories))}" data-terms-categories="${encodeURIComponent(JSON.stringify(termsCategories))}">`;
         blockHtml += `<div class="search-block-content">Loading search interface...</div>`;
         blockHtml += '</div></div>';
         

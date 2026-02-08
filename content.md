@@ -59,10 +59,11 @@ tiedonhaku: Tiedonhaku | Research | orange
 
 ## Special
 
-### Ultimate search Function 5000
+### Hakukone
 Type: Link
 Main Tag: arki
 Tags: verkko, tiedonhaku
+ID: zero
 Description FI: Internet-hakukoneita lisäasetuksilla
 Description EN: Internet search services with some extra easy to use settings
 Added: 08.02.2026
@@ -1208,9 +1209,11 @@ Alla olevalla hakukoneella voit etsiä netistä reseptejä ehkä tavallista help
 
 >[!search]copy+collapsed Reseptihaku
 >SITES: card
+>sID: reseptisivuja
 >INCLUDE: true
 >EXCLUDE: true
 >EXLINKS: true
+>INWORD: resepti
 >WORDS: ruoka
 >TERMS: arki
 >[/search]

@@ -210,6 +210,8 @@ Added: 27.01.2026
 Last Checked: 27.01.2026
 Updated: 27.01.2026
 PDF: true
+Hide: false
+Keywords: työnhaku, työttömyys, te, työvoimatoimisto
 Body FI: TE-palvelut tarjoaa kattavat palvelut työnhakijoille.
 
 **Tärkeää:**
@@ -287,6 +289,8 @@ Set up email alerts to get notified about new job openings.
 
 ### Optional Fields
 - `Icon:` - URL to custom icon/image for this item
+- `Short Name:` - Short FI | Short EN - Concise name for link list groupings
+- `Collapsed:` - true (collapses links in link lists except category view)
 - `URL:` - main link
 - `URL Name:` - custom text for main link
 - `URL Description:` - description for main URL
@@ -296,6 +300,8 @@ Set up email alerts to get notified about new job openings.
 - `Updated:` - date in DD.MM.YYYY format
 - `Last Checked:` - date in DD.MM.YYYY format
 - `PDF:` - true (enables PDF download)
+- `Hide:` - true (hides card from display - useful for work-in-progress)
+- `Keywords:` - Comma-separated words for search functionality (not displayed)
 - `Body FI:` - markdown content in Finnish. One content card can have more than one of these. (Look for BBREAK)
 - `Body EN:` - markdown content in English. One content card can have more than one of these.
 - `#### Links:` sections with links
@@ -421,6 +427,239 @@ const result = calculate();
 - Without `block` option, HTML/scripts are rendered (centered in container)
 - With `block` option, content is displayed as code
 - Copy button copies the raw content from the markdown file
+
+## Search Blocks
+
+Search blocks create interactive search interfaces with site filtering, word suggestions, and multiple search engines.
+
+### Basic Syntax
+
+```markdown
+>[!search] Search Title
+>SITES: card
+>FREEFORM: true
+>INCLUDE: true
+>EXCLUDE: true
+>[/search]
+```
+
+### Options
+
+Options are added after `>[!search]` and before the title:
+
+- `copy` - Add a "Copy Search" button to copy query to clipboard
+- `collapsed` - Start in collapsed state (click title to expand)
+
+**Example:**
+```markdown
+>[!search]copy+collapsed Recipe Search
+>SITES: category
+>WORDS: ruoka
+>[/search]
+```
+
+### Configuration Parameters
+
+All parameters are optional and go between `>[!search]` and `>[/search]`:
+
+#### Site Collection
+- `SITES: card` - Collect sites from current card only (default)
+- `SITES: category` - Collect sites from all cards in same category
+- `SITES: tag` - Collect sites from all cards sharing any tags
+- `SITES: keywords` - Collect sites from cards with matching keywords
+- `SITES: all` - Collect sites from all cards
+- `URLs: url1, url2, url3` - Add custom URLs to the list
+
+#### Free-form Site Entry
+- `FREEFORM: true` - Enable manual site entry with autocomplete from collected sites
+- `FREEFORM: true++` - Show BOTH site checkboxes AND manual entry fields simultaneously
+
+#### Word Filters
+- `INCLUDE: true` - Enable "must contain" words field
+- `EXCLUDE: true` - Enable "exclude" words field
+- `INWORD: word1, word2` - Predefined must-contain words
+- `EXWORD: word1, word2` - Predefined exclude words
+
+#### Word Suggestions (from words.md)
+- `WORDS: category1, category2` - Categories for all input fields
+- `TERMS: category1, category2` - Categories for search terms and exclude words only
+- `EXLINKS: true` - Enable domain suggestions for exclude sites field
+
+### Complete Example
+
+```markdown
+>[!search]copy+collapsed Reseptihaku
+>SITES: card
+>FREEFORM: true
+>INCLUDE: true
+>EXCLUDE: true
+>EXLINKS: true
+>WORDS: ruoka
+>TERMS: arki
+>[/search]
+```
+
+This creates a search interface that:
+- Starts collapsed with a copy button
+- Shows sites from the current card
+- Allows manual site entry
+- Has must-contain and exclude word fields
+- Shows domain suggestions for exclude sites
+- Suggests words from "ruoka" category for all fields
+- Suggests additional words from "arki" category for search terms and exclude words
+
+### How It Works
+
+1. **Search Engines**: Choose from Google, DuckDuckGo, Bing, Ecosia, Yahoo, Qwant, or Brave
+2. **Site Filtering**: Select which sites to search (or all sites)
+3. **Word Suggestions**: Type 2+ characters to see autocomplete suggestions
+4. **Smart Tab Completion**:
+   - Press Tab to add suggestion when only 1 match
+   - Press Tab to add current text when no suggestions
+   - Click suggestion to fill input, then Tab/Enter to add
+5. **AI Filtering**: Checkbox to exclude AI-generated results
+6. **Copy**: Copy button creates search query you can paste into search engine
+7. **Open in New Tab**: Click the external link icon (⧉) next to search block title to open in standalone [search.html](search.html) page
+
+### Standalone Search Pages
+
+Each search block can be opened in a dedicated page for focused searching:
+
+- **URL Format**: `search.html#card={cardId}&sid={searchId}`
+- **Access**: Click the ⧉ icon next to any search block title
+- **Features**: Minimal header with language/theme buttons and back button
+- **Default Engine**: Navigate to `search.html` or `search.html#card=zero` to use the default search engine
+- **Search Selector**: Default engine includes dropdown to switch to other search blocks
+
+#### Creating a Default Search Engine
+
+Create a special card with `ID: zero` to define the default search engine:
+
+```markdown
+### Hakukone | Search Engine
+Type: Link
+Main Tag: arki
+ID: zero
+Description FI: Internet-hakukoneita lisäasetuksilla
+Description EN: Internet search services with extra settings
+Body FI: >[!search]copy Hakukone
+>SITES: all
+>FREEFORM: true
+>INCLUDE: true
+>EXCLUDE: true
+>[/search]
+```
+
+When users visit `search.html` without parameters, they'll see this default engine with a dropdown listing all available search blocks from other content cards.
+
+### Search Query Building
+
+The search interface intelligently builds queries:
+- Regular search terms stay unquoted
+- Must-contain words are added with quotes: `"word"`
+- Words in both search and must-contain only appear once (quoted)
+- Sites are added with `site:` operator
+- Exclude words use `-` operator
+- Exclude sites use `-site:` operator
+- Qwant uses special OR syntax for sites
+
+## Words.md - Search Suggestion Database
+
+The `words.md` file provides word suggestions for search blocks. Create this file to enable autocomplete in search interfaces.
+
+### File Format
+
+```markdown
+# Search Term Suggestions
+
+## category_fi | category_en
+Examples: example_fi | example_en
+word_fi | word_en
+word2_fi | word2_en
+word3_fi | word3_en
+
+## Links to exclude | Links to exclude
+Examples: esim. pinterest.com | e.g. pinterest.com
+domain1.com | domain1.com
+domain2.fi | domain2.fi
+```
+
+### Structure
+
+- **Category Header**: `## finnish_name | english_name`
+  - Both names must be provided (can be same for non-translatable categories)
+  
+- **Examples Line** (optional): `Examples: finnish_example | english_example`
+  - Used as placeholder text in search inputs
+  - Shows users what kind of words to expect
+  
+- **Word Lines**: `word_fi | word_en`
+  - One word per line
+  - Both language versions required
+  - Current language determines which version is shown
+
+### Special Category
+
+**Links to exclude** - Provides domain suggestions for exclude sites:
+```markdown
+## Links to exclude | Links to exclude
+Examples: esim. pinterest.com, youtube.com... | e.g. pinterest.com, youtube.com...
+pinterest.com | pinterest.com
+youtube.com | youtube.com
+facebook.com | facebook.com
+```
+
+### Example File
+
+```markdown
+# Search Term Suggestions
+
+## ruoka | food
+Examples: esim. resepti, ohje... | e.g. recipe, instruction...
+resepti | recipe
+ohje | instruction
+nopea | quick
+helppo | easy
+vegaani | vegan
+
+## arki | everyday
+Examples: esim. nopea, helppo... | e.g. quick, easy...
+nopea | quick
+helppo | easy
+edullinen | affordable
+
+## Links to exclude | Links to exclude
+Examples: esim. pinterest.com | e.g. pinterest.com
+pinterest.com | pinterest.com
+youtube.com | youtube.com
+instagram.com | instagram.com
+```
+
+### Usage in Search Blocks
+
+Reference categories in your search blocks:
+
+```markdown
+>[!search] Recipe Search
+>SITES: card
+>WORDS: ruoka
+>TERMS: arki
+>EXLINKS: true
+>[/search]
+```
+
+- `WORDS: ruoka` - Shows "ruoka" words in all input fields
+- `TERMS: arki` - Shows additional "arki" words in search terms and exclude words
+- `EXLINKS: true` - Shows "Links to exclude" domains in exclude sites field
+
+### Autocomplete Behavior
+
+- Suggestions appear after typing 2+ characters
+- Already-added words are filtered from suggestions
+- Click suggestion or arrow-select and press Tab/Enter to add
+- Type partial word + Tab = adds single match if only 1 exists
+- No matches + Tab = adds typed text as-is
+- Suggestions use current language (fi/en)
 
 # Debug
 
